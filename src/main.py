@@ -8,6 +8,10 @@ from loguru import logger
 from src.config.settings import get_config
 from src.collectors.stock_data import StockDataCollector
 from src.collectors.news_scraper import NewsScraper
+from src.collectors.social_heat import SocialHeatCollector
+from src.collectors.policy_monitor import PolicyMonitor
+from src.collectors.research_paper import ResearchPaperCollector
+from src.collectors.company_report import CompanyReportCollector
 from src.analyzers.strategy import StrategyAnalyzer
 from src.generators.html_report import HTMLReportGenerator
 
@@ -41,12 +45,20 @@ def run_daily_analysis():
         logger.info("Step 1: Collecting data...")
         stock_collector = StockDataCollector()
         news_collector = NewsScraper()
+        social_collector = SocialHeatCollector()
+        policy_monitor = PolicyMonitor()
+        research_collector = ResearchPaperCollector()
+        company_collector = CompanyReportCollector()
         
         market_data = stock_collector.get_market_overview()
         stock_list = stock_collector.get_stock_list()
         news_data = news_collector.get_market_news()
+        social_data = social_collector.get_weibo_hot()
+        policy_data = policy_monitor.get_state_council_policies()
+        research_data = research_collector.get_arxiv_papers()
         
-        logger.info(f"Collected {len(stock_list)} stocks, {len(news_data)} news articles")
+        logger.info(f"Collected {len(stock_list)} stocks, {len(news_data)} news, {len(social_data)} social topics")
+        logger.info(f"Collected {len(policy_data)} policies, {len(research_data)} research papers")
         
         # Step 2: Analyze data
         logger.info("Step 2: Analyzing data...")
@@ -54,7 +66,10 @@ def run_daily_analysis():
         analysis_results = strategy_analyzer.analyze(
             market_data=market_data,
             stock_list=stock_list,
-            news_data=news_data
+            news_data=news_data,
+            social_data=social_data,
+            policy_data=policy_data,
+            research_data=research_data
         )
         
         logger.info(f"Analysis complete. Generated {len(analysis_results.get('recommendations', []))} recommendations")

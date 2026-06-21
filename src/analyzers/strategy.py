@@ -13,13 +13,18 @@ class StrategyAnalyzer:
         """Initialize strategy analyzer."""
         self.analysis_results = {}
     
-    def analyze(self, market_data: Dict, stock_list: List[Dict], news_data: List[Dict]) -> Dict[str, Any]:
+    def analyze(self, market_data: Dict, stock_list: List[Dict], news_data: List[Dict],
+                social_data: List[Dict] = None, policy_data: List[Dict] = None,
+                research_data: List[Dict] = None) -> Dict[str, Any]:
         """Perform comprehensive analysis.
         
         Args:
             market_data: Market overview data
             stock_list: List of all stocks
             news_data: List of news articles
+            social_data: List of social hot topics
+            policy_data: List of government policies
+            research_data: List of research papers
             
         Returns:
             Analysis results dictionary
@@ -40,6 +45,18 @@ class StrategyAnalyzer:
         news_impact = self._analyze_news_impact(news_data)
         results["news_impact"] = news_impact
         
+        # Analyze social heat
+        social_impact = self._analyze_social_heat(social_data or [])
+        results["social_impact"] = social_impact
+        
+        # Analyze policy impact
+        policy_impact = self._analyze_policy_impact(policy_data or [])
+        results["policy_impact"] = policy_impact
+        
+        # Analyze research impact
+        research_impact = self._analyze_research_impact(research_data or [])
+        results["research_impact"] = research_impact
+        
         # Analyze sectors
         sector_analysis = self._analyze_sectors(stock_list)
         results["sector_analysis"] = sector_analysis
@@ -50,7 +67,8 @@ class StrategyAnalyzer:
         
         # Generate recommendations
         recommendations = self._generate_recommendations(
-            stock_list, news_data, market_sentiment, risk_level
+            stock_list, news_data, market_sentiment, risk_level,
+            social_impact, policy_impact, research_impact
         )
         results["recommendations"] = recommendations
         
@@ -125,6 +143,72 @@ class StrategyAnalyzer:
         
         return impact
     
+    def _analyze_social_heat(self, social_data: List[Dict]) -> Dict[str, Any]:
+        """Analyze social media hot topics."""
+        impact = {
+            "total_topics": len(social_data),
+            "finance_related": 0,
+            "top_topics": []
+        }
+        
+        for topic in social_data:
+            if topic.get('sentiment') == 'finance_related':
+                impact["finance_related"] += 1
+        
+        # Sort by heat (convert to number if possible)
+        sorted_topics = sorted(social_data, key=lambda x: int(str(x.get('heat', '0')).replace(',', '')) if str(x.get('heat', '0')).isdigit() else 0, reverse=True)
+        impact["top_topics"] = sorted_topics[:5]
+        
+        return impact
+    
+    def _analyze_policy_impact(self, policy_data: List[Dict]) -> Dict[str, Any]:
+        """Analyze government policy impact."""
+        impact = {
+            "total_policies": len(policy_data),
+            "high_impact": 0,
+            "sectors_affected": set(),
+            "top_policies": []
+        }
+        
+        for policy in policy_data:
+            if policy.get('impact_score', 0) >= 7.0:
+                impact["high_impact"] += 1
+            for sector in policy.get('impact_sectors', []):
+                impact["sectors_affected"].add(sector)
+        
+        # Convert set to list for JSON serialization
+        impact["sectors_affected"] = list(impact["sectors_affected"])
+        
+        # Sort by impact score
+        sorted_policies = sorted(policy_data, key=lambda x: x.get('impact_score', 0), reverse=True)
+        impact["top_policies"] = sorted_policies[:5]
+        
+        return impact
+    
+    def _analyze_research_impact(self, research_data: List[Dict]) -> Dict[str, Any]:
+        """Analyze research paper impact."""
+        impact = {
+            "total_papers": len(research_data),
+            "high_impact": 0,
+            "fields_covered": set(),
+            "top_papers": []
+        }
+        
+        for paper in research_data:
+            if paper.get('impact_score', 0) >= 6.0:
+                impact["high_impact"] += 1
+            for field in paper.get('related_fields', []):
+                impact["fields_covered"].add(field)
+        
+        # Convert set to list for JSON serialization
+        impact["fields_covered"] = list(impact["fields_covered"])
+        
+        # Sort by impact score
+        sorted_papers = sorted(research_data, key=lambda x: x.get('impact_score', 0), reverse=True)
+        impact["top_papers"] = sorted_papers[:5]
+        
+        return impact
+    
     def _analyze_sectors(self, stock_list: List[Dict]) -> Dict[str, Any]:
         """Analyze sector performance."""
         sectors = {}
@@ -194,13 +278,16 @@ class StrategyAnalyzer:
         return risk
     
     def _generate_recommendations(self, stock_list: List[Dict], news_data: List[Dict], 
-                                  market_sentiment: Dict, risk_level: Dict) -> List[Dict[str, Any]]:
+                                  market_sentiment: Dict, risk_level: Dict,
+                                  social_impact: Dict = None, policy_impact: Dict = None,
+                                  research_impact: Dict = None) -> List[Dict[str, Any]]:
         """Generate stock recommendations."""
         recommendations = []
         
         # Filter stocks based on criteria
         for stock in stock_list:
-            score = self._calculate_stock_score(stock, news_data, market_sentiment, risk_level)
+            score = self._calculate_stock_score(stock, news_data, market_sentiment, risk_level,
+                                               social_impact, policy_impact, research_impact)
             
             if score > 6.0:  # Only recommend stocks with good scores
                 recommendation = {
@@ -210,7 +297,7 @@ class StrategyAnalyzer:
                     "change": stock.get('change', 0),
                     "score": round(score, 2),
                     "action": "buy" if score > 7 else "hold",
-                    "reason": self._generate_reason(stock, score),
+                    "reason": self._generate_reason(stock, score, social_impact, policy_impact, research_impact),
                     "risk": "low" if score > 8 else "medium" if score > 6 else "high",
                     "expected_return": f"{max(5, score * 2):.0f}-{max(10, score * 3):.0f}%"
                 }
@@ -227,7 +314,9 @@ class StrategyAnalyzer:
         return recommendations[:10]  # Top 10 recommendations
     
     def _calculate_stock_score(self, stock: Dict, news_data: List[Dict], 
-                               market_sentiment: Dict, risk_level: Dict) -> float:
+                               market_sentiment: Dict, risk_level: Dict,
+                               social_impact: Dict = None, policy_impact: Dict = None,
+                               research_impact: Dict = None) -> float:
         """Calculate score for a stock."""
         score = 5.0  # Base score
         
@@ -269,9 +358,26 @@ class StrategyAnalyzer:
         risk_score = risk_level.get('score', 5)
         score -= (risk_score - 5) * 0.1
         
+        # Social heat factor
+        if social_impact and social_impact.get('finance_related', 0) > 3:
+            score += 0.3
+        
+        # Policy factor
+        if policy_impact and policy_impact.get('high_impact', 0) > 0:
+            stock_sector = stock.get('sector', '')
+            if stock_sector in policy_impact.get('sectors_affected', []):
+                score += 1.0
+        
+        # Research factor
+        if research_impact and research_impact.get('high_impact', 0) > 0:
+            stock_sector = stock.get('sector', '')
+            if stock_sector in str(research_impact.get('fields_covered', [])):
+                score += 0.5
+        
         return min(max(score, 0), 10)
     
-    def _generate_reason(self, stock: Dict, score: float) -> str:
+    def _generate_reason(self, stock: Dict, score: float, social_impact: Dict = None,
+                         policy_impact: Dict = None, research_impact: Dict = None) -> str:
         """Generate recommendation reason."""
         reasons = []
         
@@ -284,6 +390,15 @@ class StrategyAnalyzer:
         pe = stock.get('pe')
         if pe and 0 < pe < 30:
             reasons.append("估值合理")
+        
+        # Check if stock sector is affected by policy
+        stock_sector = stock.get('sector', '')
+        if policy_impact and stock_sector in policy_impact.get('sectors_affected', []):
+            reasons.append("政策利好")
+        
+        # Check if stock sector is affected by research
+        if research_impact and stock_sector in str(research_impact.get('fields_covered', [])):
+            reasons.append("科研热点")
         
         if score > 8:
             reasons.append("综合评分优秀")

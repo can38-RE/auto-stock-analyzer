@@ -264,6 +264,56 @@ class HTMLReportGenerator:
         </section>
         
         <section class="section">
+            <h2>社会热点</h2>
+            <p>共收集 {{ social_impact.total_topics }} 个热点话题</p>
+            <p>财经相关: {{ social_impact.finance_related }} 个</p>
+            
+            <h3 style="margin-top: 20px; margin-bottom: 15px;">热门话题</h3>
+            <div class="news-list">
+                {% for topic in social_impact.top_topics %}
+                <div class="news-item">
+                    <h4>{{ topic.topic }}</h4>
+                    <p class="meta">平台: {{ topic.platform }} | 热度: {{ topic.heat }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>政策影响</h2>
+            <p>共收集 {{ policy_impact.total_policies }} 条政策</p>
+            <p>高影响政策: {{ policy_impact.high_impact }} 条</p>
+            <p>受影响行业: {{ policy_impact.sectors_affected|join(', ') }}</p>
+            
+            <h3 style="margin-top: 20px; margin-bottom: 15px;">重要政策</h3>
+            <div class="news-list">
+                {% for policy in policy_impact.top_policies %}
+                <div class="news-item">
+                    <h4>{{ policy.title }}</h4>
+                    <p class="meta">来源: {{ policy.source }} | 影响评分: {{ policy.impact_score }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>科研动态</h2>
+            <p>共收集 {{ research_impact.total_papers }} 篇论文/资讯</p>
+            <p>高影响研究: {{ research_impact.high_impact }} 篇</p>
+            <p>涉及领域: {{ research_impact.fields_covered|join(', ') }}</p>
+            
+            <h3 style="margin-top: 20px; margin-bottom: 15px;">重要研究</h3>
+            <div class="news-list">
+                {% for paper in research_impact.top_papers %}
+                <div class="news-item">
+                    <h4>{{ paper.title }}</h4>
+                    <p class="meta">来源: {{ paper.source }} | 影响评分: {{ paper.impact_score }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        
+        <section class="section">
             <h2>板块分析</h2>
             <h3 style="margin-bottom: 15px;">表现最佳板块</h3>
             <div class="market-overview">
