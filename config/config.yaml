@@ -1,0 +1,71 @@
+# AutoStockAnalyzer Configuration
+
+# Market Configuration
+market:
+  name: "A股"
+  exchanges: ["上交所", "深交所"]
+  trading_hours: "09:30-15:00"
+
+# Capital Configuration
+capital:
+  initial: 1000
+  currency: "CNY"
+
+# Risk Management
+risk:
+  level: "dynamic"  # conservative/aggressive/dynamic
+  max_position: 0.2  # 单只股票最大仓位20%
+  stop_loss: 0.08    # 止损线8%
+  take_profit: 0.20  # 止盈线20%
+  min_stocks: 3      # 最少持有股票数
+  max_stocks: 5      # 最多持有股票数
+
+# AI Model Configuration
+ai:
+  model: "mimo-v2.5"
+  api_key: "${MIMO_API_KEY}"
+  max_tokens: 4096
+  temperature: 0.7
+
+# Data Sources Configuration
+data_sources:
+  akshare:
+    enabled: true
+    cache_ttl: 3600  # Cache 1 hour
+  
+  news:
+    sources:
+      - "新浪财经"
+      - "东方财富"
+      - "同花顺"
+      - "财联社"
+    max_articles: 50
+    cache_ttl: 1800  # Cache 30 minutes
+  
+  social:
+    platforms:
+      - "微博"
+      - "知乎"
+      - "百度"
+    cache_ttl: 900   # Cache 15 minutes
+
+# Report Configuration
+report:
+  format: "html"
+  output_dir: "./reports/"
+  include_charts: true
+  chart_format: "plotly"
+
+# Scheduler Configuration
+scheduler:
+  timezone: "Asia/Shanghai"
+  run_time: "08:00"
+  retry_count: 3
+  timeout: 600  # 10 minutes timeout
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  file: "./logs/analyzer.log"
+  max_size: "10MB"
+  backup_count: 5
