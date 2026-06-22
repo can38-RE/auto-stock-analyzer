@@ -14,6 +14,7 @@ from src.collectors.research_paper import ResearchPaperCollector
 from src.collectors.company_report import CompanyReportCollector
 from src.analyzers.strategy import StrategyAnalyzer
 from src.generators.html_report import HTMLReportGenerator
+from src.generators.email_sender import send_daily_report
 
 
 def setup_logging():
@@ -80,6 +81,15 @@ def run_daily_analysis():
         report_path = report_generator.generate(analysis_results)
         
         logger.info(f"Report generated: {report_path}")
+        
+        # Step 4: Send email
+        logger.info("Step 4: Sending email...")
+        email_sent = send_daily_report(report_path)
+        if email_sent:
+            logger.info("Email sent successfully!")
+        else:
+            logger.warning("Email sending skipped or failed")
+        
         logger.info("Daily analysis completed successfully!")
         
         return report_path
