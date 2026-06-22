@@ -2,8 +2,8 @@ name: Daily Stock Analysis
 
 on:
   schedule:
-    # 每天北京时间9:36 (UTC 1:36)
-    - cron: '36 1 * * *'
+    # 每天北京时间9:26 (UTC 1:26)
+    - cron: '26 1 * * *'
   workflow_dispatch: # 支持手动触发
 
 permissions:

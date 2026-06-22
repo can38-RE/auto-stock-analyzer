@@ -12,6 +12,7 @@ from src.collectors.social_heat import SocialHeatCollector
 from src.collectors.policy_monitor import PolicyMonitor
 from src.collectors.research_paper import ResearchPaperCollector
 from src.collectors.company_report import CompanyReportCollector
+from src.collectors.mainboard_screener import MainboardScreener
 from src.analyzers.strategy import StrategyAnalyzer
 from src.generators.html_report import HTMLReportGenerator
 from src.generators.email_sender import send_daily_report
@@ -61,6 +62,14 @@ def run_daily_analysis():
         logger.info(f"Collected {len(stock_list)} stocks, {len(news_data)} news, {len(social_data)} social topics")
         logger.info(f"Collected {len(policy_data)} policies, {len(research_data)} research papers")
         
+        # Step 1.5: Screen mainboard stocks for aggressive strategy
+        logger.info("Step 1.5: Screening mainboard stocks...")
+        screener = MainboardScreener()
+        budget = config.capital.get('initial', 1900)
+        screened_stocks = screener.screen_stocks(budget=budget, top_n=20)
+        buy_plan = screener.generate_buy_plan(screened_stocks, budget=budget)
+        logger.info(f"Screened {len(screened_stocks)} mainboard stocks, buy plan: {buy_plan['summary']}")
+        
         # Step 2: Analyze data
         logger.info("Step 2: Analyzing data...")
         strategy_analyzer = StrategyAnalyzer()
@@ -74,6 +83,10 @@ def run_daily_analysis():
         )
         
         logger.info(f"Analysis complete. Generated {len(analysis_results.get('recommendations', []))} recommendations")
+        
+        # Add screener results to analysis
+        analysis_results['mainboard_stocks'] = screened_stocks
+        analysis_results['buy_plan'] = buy_plan
         
         # Step 3: Generate report
         logger.info("Step 3: Generating report...")

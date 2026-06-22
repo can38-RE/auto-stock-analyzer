@@ -373,6 +373,67 @@ class HTMLReportGenerator:
             </div>
         </section>
         
+        {% if mainboard_stocks %}
+        <section class="section">
+            <h2>主板股票筛选 (激进策略)</h2>
+            <p>筛选条件: 主板 | 价格5-19元 | 高动量 | 适合小资金</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <thead>
+                    <tr style="background: #f8f9fa;">
+                        <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea;">代码</th>
+                        <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea;">名称</th>
+                        <th style="padding: 10px; text-align: right; border-bottom: 2px solid #667eea;">价格</th>
+                        <th style="padding: 10px; text-align: right; border-bottom: 2px solid #667eea;">1手成本</th>
+                        <th style="padding: 10px; text-align: right; border-bottom: 2px solid #667eea;">动量</th>
+                        <th style="padding: 10px; text-align: center; border-bottom: 2px solid #667eea;">评分</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in mainboard_stocks[:10] %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">{{ stock.code }}</td>
+                        <td style="padding: 10px;">{{ stock.name }}</td>
+                        <td style="padding: 10px; text-align: right;">¥{{ "%.2f"|format(stock.price) }}</td>
+                        <td style="padding: 10px; text-align: right;">¥{{ "%.0f"|format(stock.cost_100) }}</td>
+                        <td style="padding: 10px; text-align: right; color: {{ '#e74c3c' if stock.momentum > 0 else '#27ae60' }};">
+                            {{ "%+.2f"|format(stock.momentum) }}%
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span style="background: #667eea; color: white; padding: 3px 8px; border-radius: 10px;">{{ stock.score }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        
+        <section class="section">
+            <h2>今日买入方案</h2>
+            <div class="portfolio-strategy">
+                <h3>激进策略 - 100股起买</h3>
+                <p>总预算: ¥{{ buy_plan.budget }}</p>
+                <p>总投入: ¥{{ buy_plan.total_cost }}</p>
+                <p>剩余资金: ¥{{ buy_plan.remaining }}</p>
+                
+                {% if buy_plan.positions %}
+                <h3 style="margin-top: 20px;">推荐买入</h3>
+                <ul class="position-list">
+                    {% for pos in buy_plan.positions %}
+                    <li>
+                        <strong>{{ pos.name }}</strong> ({{ pos.code }})<br>
+                        价格: ¥{{ "%.2f"|format(pos.price) }} × 100股 = ¥{{ "%.0f"|format(pos.cost) }}<br>
+                        动量: {{ "%+.2f"|format(pos.momentum) }}% | 评分: {{ pos.score }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                
+                <p style="margin-top: 20px;"><strong>操作建议:</strong> {{ buy_plan.summary }}</p>
+            </div>
+        </section>
+        {% endif %}
+        
         <footer>
             <p>声明: 本报告仅供参考，不构成投资建议。股市有风险，投资需谨慎。</p>
             <p>AutoStockAnalyzer v1.0 | 生成时间: {{ analysis_time }}</p>
