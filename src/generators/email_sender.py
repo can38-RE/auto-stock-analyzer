@@ -38,11 +38,22 @@ class EmailSender:
             True if successful, False otherwise
         """
         try:
+            # Determine session based on time
+            now = datetime.now()
+            hour = now.hour
+            
+            if hour < 12:
+                session = "早盘"
+                emoji = "🌅"
+            else:
+                session = "午盘"
+                emoji = "☀️"
+            
             # Create message
             msg = MIMEMultipart('alternative')
             msg['From'] = sender_email
             msg['To'] = receiver_email
-            msg['Subject'] = f"AutoStockAnalyzer 每日分析报告 - {datetime.now().strftime('%Y-%m-%d')}"
+            msg['Subject'] = f"{emoji} {session}分析报告 - {now.strftime('%Y-%m-%d')} | 1900元激进策略"
             
             # Read report content
             report_path = Path(report_path)
