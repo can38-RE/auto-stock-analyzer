@@ -319,33 +319,37 @@ class StrategyAnalyzer:
                                market_sentiment: Dict, risk_level: Dict,
                                social_impact: Dict = None, policy_impact: Dict = None,
                                research_impact: Dict = None) -> float:
-        """Calculate score for a stock."""
+        """Calculate score for a stock (aggressive style)."""
         score = 5.0  # Base score
         
-        # Price factor (prefer lower prices for small capital)
+        # Price factor (aggressive: prefer mid-price stocks with momentum)
         price = stock.get('price', 0)
-        if 5 <= price <= 20:
-            score += 1.5
-        elif 20 < price <= 50:
-            score += 0.5
+        if 10 <= price <= 50:
+            score += 1.5  # Sweet spot for aggressive plays
+        elif 50 < price <= 100:
+            score += 1.0
         elif price > 100:
-            score -= 1.0
+            score += 0.5  # High price stocks can still be good
         
-        # Change factor
+        # Change factor (aggressive: prefer momentum)
         change = stock.get('change', 0)
         if 0 < change <= 3:
             score += 1.0
-        elif 3 < change <= 5:
-            score += 0.5
-        elif change > 5:
-            score -= 0.5  # Too much increase, might be risky
+        elif 3 < change <= 7:
+            score += 1.5  # Momentum play
+        elif 7 < change <= 10:
+            score += 1.0  # Strong momentum but higher risk
+        elif change > 10:
+            score += 0.5  # Too hot, be careful
         
-        # PE ratio factor
+        # PE ratio factor (aggressive: can tolerate higher PE for growth)
         pe = stock.get('pe')
-        if pe and 0 < pe < 30:
-            score += 1.0
-        elif pe and pe > 50:
-            score -= 0.5
+        if pe and 0 < pe < 50:
+            score += 1.0  # Growth stocks acceptable
+        elif pe and 50 <= pe < 100:
+            score += 0.5  # High growth premium
+        elif pe and pe > 100:
+            score -= 0.5  # Too expensive
         
         # Volume factor
         volume = stock.get('volume', 0)
@@ -380,50 +384,54 @@ class StrategyAnalyzer:
     
     def _generate_reason(self, stock: Dict, score: float, social_impact: Dict = None,
                          policy_impact: Dict = None, research_impact: Dict = None) -> str:
-        """Generate recommendation reason."""
+        """Generate recommendation reason (aggressive style)."""
         reasons = []
         
-        if stock.get('price', 0) < 20:
-            reasons.append("股价适中，适合小资金")
+        price = stock.get('price', 0)
+        if 10 <= price <= 50:
+            reasons.append("价格区间适合激进操作")
         
-        if 0 < stock.get('change', 0) <= 3:
-            reasons.append("涨幅温和，风险可控")
+        change = stock.get('change', 0)
+        if 3 < change <= 10:
+            reasons.append("强势上涨，动量充足")
         
         pe = stock.get('pe')
-        if pe and 0 < pe < 30:
-            reasons.append("估值合理")
+        if pe and 0 < pe < 50:
+            reasons.append("成长性好，估值可接受")
         
         # Check if stock sector is affected by policy
         stock_sector = stock.get('sector', '')
         if policy_impact and stock_sector in policy_impact.get('sectors_affected', []):
-            reasons.append("政策利好")
+            reasons.append("政策风口")
         
         # Check if stock sector is affected by research
         if research_impact and stock_sector in str(research_impact.get('fields_covered', [])):
             reasons.append("科研热点")
         
         if score > 8:
-            reasons.append("综合评分优秀")
+            reasons.append("强势标的")
         elif score > 7:
-            reasons.append("综合评分良好")
+            reasons.append("优质标的")
         
-        return "，".join(reasons) if reasons else "综合表现一般"
+        return "，".join(reasons) if reasons else "综合表现良好"
     
     def _generate_portfolio_strategy(self, recommendations: List[Dict]) -> Dict[str, Any]:
-        """Generate portfolio strategy for 1000 RMB capital."""
+        """Generate aggressive portfolio strategy for 1000 RMB capital."""
         capital = 1000
         strategy = {
             "capital": capital,
+            "broker": "金元证券",
+            "style": "激进型",
             "allocated": 0,
-            "cash_reserve": 50,  # Keep 50 RMB cash
+            "cash_reserve": 0,  # Aggressive: no cash reserve, all in
             "positions": [],
             "summary": ""
         }
         
         available = capital - strategy["cash_reserve"]
         
-        # Allocate to top recommendations
-        for rec in recommendations[:3]:  # Max 3 positions
+        # Aggressive: concentrate on top 2 stocks
+        for rec in recommendations[:2]:  # Max 2 positions for concentration
             if available <= 0:
                 break
             
@@ -431,11 +439,17 @@ class StrategyAnalyzer:
             if price <= 0:
                 continue
             
-            # Calculate shares (must be multiple of 100 for A-shares, but we'll use 1 for small capital)
-            # For 1000 RMB, we can't buy 100 shares of most stocks
-            # So we'll suggest buying 1 share (which is possible in some platforms)
-            shares = 1
-            cost = price * shares
+            # For A-shares, minimum buy is 100 shares (1手)
+            # Calculate how many lots we can buy
+            lot_price = price * 100  # 1手的价格
+            
+            if lot_price <= available:
+                # Can buy 1 lot
+                shares = 100
+                cost = lot_price
+            else:
+                # Can't afford 1 lot, skip
+                continue
             
             if cost <= available:
                 position = {
@@ -456,9 +470,9 @@ class StrategyAnalyzer:
         
         # Generate summary
         if strategy["positions"]:
-            pos_summary = ", ".join([f"{p['name']}({p['allocation']}%)" for p in strategy["positions"]])
-            strategy["summary"] = f"建议配置: {pos_summary}，保留{strategy['cash_remaining']}元现金"
+            pos_summary = ", ".join([f"{p['name']}({p['shares']}股/{p['allocation']}%)" for p in strategy["positions"]])
+            strategy["summary"] = f"激进策略: {pos_summary}，剩余{strategy['cash_remaining']}元"
         else:
-            strategy["summary"] = "当前市场条件下，建议暂时观望，保留现金"
+            strategy["summary"] = "当前无合适标的，建议等待机会"
         
         return strategy
