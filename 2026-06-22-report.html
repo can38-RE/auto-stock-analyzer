@@ -1,0 +1,320 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoStockAnalyzer - 每日分析报告</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        header p {
+            opacity: 0.9;
+        }
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        .market-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .index-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .index-card h3 {
+            font-size: 1em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .index-card .price {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .index-card .change {
+            font-size: 1.2em;
+            margin-top: 5px;
+        }
+        .positive { color: #e74c3c; }
+        .negative { color: #27ae60; }
+        .neutral { color: #7f8c8d; }
+        .news-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .news-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .news-item:last-child {
+            border-bottom: none;
+        }
+        .news-item h4 {
+            margin-bottom: 5px;
+        }
+        .news-item .meta {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .recommendations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .stock-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .stock-card h4 {
+            margin-bottom: 10px;
+        }
+        .stock-card .score {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stock-card .details {
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        .portfolio-strategy {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+        }
+        .portfolio-strategy h3 {
+            margin-bottom: 15px;
+        }
+        .position-list {
+            list-style: none;
+        }
+        .position-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .position-list li:last-child {
+            border-bottom: none;
+        }
+        .risk-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .risk-low { background: #27ae60; color: white; }
+        .risk-medium { background: #f39c12; color: white; }
+        .risk-high { background: #e74c3c; color: white; }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AutoStockAnalyzer 每日分析报告</h1>
+            <p>日期: 2026-06-22 | 分析时间: 2026-06-22 01:09:11</p>
+        </header>
+        
+        <section class="section">
+            <h2>市场概览</h2>
+            <div class="market-overview">
+                
+                <div class="index-card">
+                    <h3>shanghai</h3>
+                    <div class="price">4090.481</div>
+                    <div class="change negative">
+                        -0.43%
+                    </div>
+                </div>
+                
+                <div class="index-card">
+                    <h3>shenzhen</h3>
+                    <div class="price">16030.702</div>
+                    <div class="change positive">
+                        +0.94%
+                    </div>
+                </div>
+                
+                <div class="index-card">
+                    <h3>chinext</h3>
+                    <div class="price">4252.39</div>
+                    <div class="change positive">
+                        +2.05%
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>市场情绪</h2>
+            <p><strong>整体情绪:</strong> slightly_bullish</p>
+            <p><strong>情绪评分:</strong> 6.5/10</p>
+            
+            <p><strong>影响因素:</strong> 市场小幅上涨</p>
+            
+        </section>
+        
+        <section class="section">
+            <h2>风险评估</h2>
+            <p><strong>风险等级:</strong> <span class="risk-badge risk-low">low</span></p>
+            <p><strong>风险评分:</strong> 3.0/10</p>
+            
+            <p><strong>风险因素:</strong> 市场相对稳定</p>
+            
+        </section>
+        
+        <section class="section">
+            <h2>新闻分析</h2>
+            <p>共收集 0 条新闻</p>
+            <p>正面: 0 | 中性: 0 | 负面: 0</p>
+            
+            <h3 style="margin-top: 20px; margin-bottom: 15px;">重要新闻</h3>
+            <div class="news-list">
+                
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>社会热点</h2>
+            <p>共收集 0 个热点话题</p>
+            <p>财经相关: 0 个</p>
+            
+            <h3 style="margin-top: 20px; margin-bottom: 15px;">热门话题</h3>
+            <div class="news-list">
+                
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>政策影响</h2>
+            <p>共收集 0 条政策</p>
+            <p>高影响政策: 0 条</p>
+            <p>受影响行业: </p>
+            
+            <h3 style="margin-top: 20px; margin-bottom: 15px;">重要政策</h3>
+            <div class="news-list">
+                
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>科研动态</h2>
+            <p>共收集 20 篇论文/资讯</p>
+            <p>高影响研究: 16 篇</p>
+            <p>涉及领域: 半导体, 人工智能, 自动驾驶</p>
+            
+            <h3 style="margin-top: 20px; margin-bottom: 15px;">重要研究</h3>
+            <div class="news-list">
+                
+                <div class="news-item">
+                    <h4>Structuring and Tokenizing Distributed User Interest Context for Generative Recommendation</h4>
+                    <p class="meta">来源: arXiv | 影响评分: 6.0</p>
+                </div>
+                
+                <div class="news-item">
+                    <h4>Toward Calibrated Mixture-of-Experts Under Distribution Shift</h4>
+                    <p class="meta">来源: arXiv | 影响评分: 6.0</p>
+                </div>
+                
+                <div class="news-item">
+                    <h4>How Do Instructions Shape Speech? Cross-Attention Attribution for Style-Captioned Text-to-Speech</h4>
+                    <p class="meta">来源: arXiv | 影响评分: 6.0</p>
+                </div>
+                
+                <div class="news-item">
+                    <h4>LedgerAgent: Structured State for Policy-Adherent Tool-Calling Agents</h4>
+                    <p class="meta">来源: arXiv | 影响评分: 6.0</p>
+                </div>
+                
+                <div class="news-item">
+                    <h4>SARLO-80: Worldwide Slant SAR Language Optic Dataset 80cm</h4>
+                    <p class="meta">来源: arXiv | 影响评分: 6.0</p>
+                </div>
+                
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>板块分析</h2>
+            <h3 style="margin-bottom: 15px;">表现最佳板块</h3>
+            <div class="market-overview">
+                
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>股票推荐</h2>
+            <div class="recommendations">
+                
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>投资组合建议 (1000元本金)</h2>
+            <div class="portfolio-strategy">
+                <h3>资金配置方案</h3>
+                <p>总资金: ¥1000</p>
+                <p>已分配: ¥0</p>
+                <p>现金保留: ¥1000</p>
+                
+                
+                
+                <p style="margin-top: 20px;"><strong>策略总结:</strong> 当前市场条件下，建议暂时观望，保留现金</p>
+            </div>
+        </section>
+        
+        <footer>
+            <p>声明: 本报告仅供参考，不构成投资建议。股市有风险，投资需谨慎。</p>
+            <p>AutoStockAnalyzer v1.0 | 生成时间: 2026-06-22 01:09:11</p>
+        </footer>
+    </div>
+</body>
+</html>
+        
