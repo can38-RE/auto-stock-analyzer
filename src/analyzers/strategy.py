@@ -4,6 +4,7 @@ from typing import Dict, List, Any
 from datetime import datetime
 
 from loguru import logger
+from src.analyzers.value_investing import ValueInvestingAnalyzer, format_value_analysis
 
 
 class StrategyAnalyzer:
@@ -12,6 +13,7 @@ class StrategyAnalyzer:
     def __init__(self):
         """Initialize strategy analyzer."""
         self.analysis_results = {}
+        self.value_analyzer = ValueInvestingAnalyzer()
     
     def analyze(self, market_data: Dict, stock_list: List[Dict], news_data: List[Dict],
                 social_data: List[Dict] = None, policy_data: List[Dict] = None,
