@@ -97,10 +97,14 @@ class MainboardScreener:
     
     def _analyze_stock(self, code: str, min_price: float, max_price: float, 
                        budget: float) -> Dict[str, Any] | None:
-        """Analyze a single stock."""
+        """Analyze a single stock with T+1 rule consideration.
+        
+        T+1 Rule: Can only sell the day AFTER buying.
+        Strategy: Look for stocks with multi-day momentum, not just single-day spikes.
+        """
         rs = bs.query_history_k_data_plus(
             code, 'date,close,volume,turn',
-            start_date='2026-06-16', end_date='2026-06-22',
+            start_date='2026-06-10', end_date='2026-06-22',
             frequency='d', adjustflag='3'
         )
         
@@ -108,7 +112,7 @@ class MainboardScreener:
         while (rs.error_code == '0') and rs.next():
             data.append(rs.get_row_data())
         
-        if len(data) < 2:
+        if len(data) < 5:  # Need at least 5 days of data
             return None
         
         latest = data[-1]
@@ -124,30 +128,64 @@ class MainboardScreener:
         if volume < 500000:
             return None
         
-        # Calculate momentum
-        price_start = float(data[0][1]) if data[0][1] else 0
-        momentum = ((price - price_start) / price_start * 100) if price_start > 0 else 0
+        # Calculate multi-day momentum (T+1 safe)
+        prices = [float(d[1]) for d in data if d[1]]
+        if len(prices) < 5:
+            return None
         
-        # Check limit up (主板 10%)
-        has_limit = False
-        for j in range(1, len(data)):
+        # 3-day momentum (more reliable than 1-day)
+        momentum_3d = ((prices[-1] - prices[-4]) / prices[-4] * 100) if prices[-4] > 0 else 0
+        
+        # 5-day momentum
+        momentum_5d = ((prices[-1] - prices[-6]) / prices[-6] * 100) if len(prices) >= 6 and prices[-6] > 0 else 0
+        
+        # Check if stock is in uptrend (higher lows)
+        recent_lows = [float(data[i][3]) for i in range(-5, 0) if data[i][3]]
+        uptrend = len(recent_lows) >= 3 and recent_lows[-1] > recent_lows[-3]
+        
+        # Check limit up in last 3 days (not just today)
+        has_limit_recent = False
+        for j in range(max(1, len(data)-3), len(data)):
             prev = float(data[j-1][1]) if data[j-1][1] else 0
             curr = float(data[j][1]) if data[j][1] else 0
             if prev > 0 and ((curr - prev) / prev * 100) >= 9.5:
-                has_limit = True
+                has_limit_recent = True
         
-        # Calculate score
+        # Volume increase (sign of continued interest)
+        vol_recent = [float(data[i][2]) for i in range(-3, 0) if data[i][2]]
+        vol_avg = sum(vol_recent) / len(vol_recent) if vol_recent else 0
+        vol_earlier = [float(data[i][2]) for i in range(-6, -3) if data[i][2]]
+        vol_avg_earlier = sum(vol_earlier) / len(vol_earlier) if vol_earlier else 1
+        volume_increase = (vol_recent[-1] / vol_avg_earlier) if vol_avg_earlier > 0 else 1
+        
+        # Score calculation (T+1 optimized)
         score = 0
-        if momentum > 15: score += 30
-        elif momentum > 10: score += 20
-        elif momentum > 5: score += 10
-        elif momentum > 0: score += 5
         
-        if has_limit: score += 25
-        if turn > 10: score += 15
-        elif turn > 5: score += 10
-        elif turn > 3: score += 5
+        # Multi-day momentum (more important for T+1)
+        if momentum_3d > 15: score += 35
+        elif momentum_3d > 10: score += 25
+        elif momentum_3d > 5: score += 15
+        elif momentum_3d > 0: score += 5
         
+        # 5-day trend
+        if momentum_5d > 20: score += 15
+        elif momentum_5d > 10: score += 10
+        
+        # Uptrend (higher lows)
+        if uptrend: score += 15
+        
+        # Recent limit up
+        if has_limit_recent: score += 20
+        
+        # Volume increase (continued buying interest)
+        if volume_increase > 1.5: score += 10
+        elif volume_increase > 1.2: score += 5
+        
+        # High turnover (active trading)
+        if turn > 10: score += 10
+        elif turn > 5: score += 5
+        
+        # Price sweet spot
         if 10 <= price <= 18: score += 10
         elif 5 <= price < 10: score += 5
         
@@ -164,11 +202,15 @@ class MainboardScreener:
             'name': name,
             'price': price,
             'cost_100': cost_100,
-            'momentum': momentum,
+            'momentum_3d': momentum_3d,
+            'momentum_5d': momentum_5d,
             'turnover': turn,
-            'has_limit_up': has_limit,
+            'has_limit_recent': has_limit_recent,
+            'uptrend': uptrend,
+            'volume_increase': volume_increase,
             'score': score,
-            'affordable': cost_100 <= budget
+            'affordable': cost_100 <= budget,
+            't1_safe': momentum_3d > 0 and uptrend  # T+1 safe indicator
         }
     
     def generate_buy_plan(self, stocks: List[Dict[str, Any]], 
