@@ -248,8 +248,10 @@ class MainboardScreener:
                     'price': stock['price'],
                     'shares': 100,
                     'cost': stock['cost_100'],
-                    'momentum': stock['momentum'],
-                    'score': stock['score']
+                    'momentum_3d': stock['momentum_3d'],
+                    'momentum_5d': stock['momentum_5d'],
+                    'score': stock['score'],
+                    't1_safe': stock.get('t1_safe', False)
                 })
                 remaining -= stock['cost_100']
                 

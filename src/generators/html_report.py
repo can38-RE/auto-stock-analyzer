@@ -385,7 +385,7 @@ class HTMLReportGenerator:
                         <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea;">名称</th>
                         <th style="padding: 10px; text-align: right; border-bottom: 2px solid #667eea;">价格</th>
                         <th style="padding: 10px; text-align: right; border-bottom: 2px solid #667eea;">1手成本</th>
-                        <th style="padding: 10px; text-align: right; border-bottom: 2px solid #667eea;">动量</th>
+                        <th style="padding: 10px; text-align: right; border-bottom: 2px solid #667eea;">3日动量</th>
                         <th style="padding: 10px; text-align: center; border-bottom: 2px solid #667eea;">评分</th>
                     </tr>
                 </thead>
@@ -396,8 +396,8 @@ class HTMLReportGenerator:
                         <td style="padding: 10px;">{{ stock.name }}</td>
                         <td style="padding: 10px; text-align: right;">¥{{ "%.2f"|format(stock.price) }}</td>
                         <td style="padding: 10px; text-align: right;">¥{{ "%.0f"|format(stock.cost_100) }}</td>
-                        <td style="padding: 10px; text-align: right; color: {{ '#e74c3c' if stock.momentum > 0 else '#27ae60' }};">
-                            {{ "%+.2f"|format(stock.momentum) }}%
+                        <td style="padding: 10px; text-align: right; color: {{ '#e74c3c' if stock.momentum_3d > 0 else '#27ae60' }};">
+                            {{ "%+.2f"|format(stock.momentum_3d) }}%
                         </td>
                         <td style="padding: 10px; text-align: center;">
                             <span style="background: #667eea; color: white; padding: 3px 8px; border-radius: 10px;">{{ stock.score }}</span>
@@ -423,7 +423,7 @@ class HTMLReportGenerator:
                     <li>
                         <strong>{{ pos.name }}</strong> ({{ pos.code }})<br>
                         价格: ¥{{ "%.2f"|format(pos.price) }} × 100股 = ¥{{ "%.0f"|format(pos.cost) }}<br>
-                        动量: {{ "%+.2f"|format(pos.momentum) }}% | 评分: {{ pos.score }}
+                        动量: {{ "%+.2f"|format(pos.momentum_3d) }}% | 评分: {{ pos.score }}
                     </li>
                     {% endfor %}
                 </ul>
