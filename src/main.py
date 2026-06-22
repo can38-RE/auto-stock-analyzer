@@ -54,8 +54,8 @@ def run_daily_analysis():
         market_data = stock_collector.get_market_overview()
         stock_list = stock_collector.get_stock_list()
         news_data = news_collector.get_market_news()
-        social_data = social_collector.get_weibo_hot()
-        policy_data = policy_monitor.get_state_council_policies()
+        social_data = social_collector.get_all_hot_topics()
+        policy_data = policy_monitor.get_all_policies()
         research_data = research_collector.get_arxiv_papers()
         
         logger.info(f"Collected {len(stock_list)} stocks, {len(news_data)} news, {len(social_data)} social topics")

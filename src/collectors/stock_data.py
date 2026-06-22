@@ -1,10 +1,12 @@
 """Stock data collector module."""
 
+import time
 from typing import Dict, List, Any
 from datetime import datetime, timedelta
 
 import akshare as ak
 import pandas as pd
+import requests
 from loguru import logger
 
 
@@ -14,6 +16,21 @@ class StockDataCollector:
     def __init__(self):
         """Initialize stock data collector."""
         self.cache = {}
+        self.max_retries = 3
+        self.retry_delay = 2
+    
+    def _retry_request(self, func, *args, **kwargs):
+        """Retry a function with exponential backoff."""
+        for attempt in range(self.max_retries):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                if attempt < self.max_retries - 1:
+                    delay = self.retry_delay * (2 ** attempt)
+                    logger.warning(f"Retry {attempt + 1}/{self.max_retries} after {delay}s: {e}")
+                    time.sleep(delay)
+                else:
+                    raise e
     
     def get_market_overview(self) -> Dict[str, Any]:
         """Get market overview for major indices.
@@ -32,7 +49,10 @@ class StockDataCollector:
             result = {}
             for name, code in indices.items():
                 try:
-                    df = ak.stock_zh_index_daily(symbol=f"sh{code}" if code.startswith("0") else f"sz{code}")
+                    df = self._retry_request(
+                        ak.stock_zh_index_daily,
+                        symbol=f"sh{code}" if code.startswith("0") else f"sz{code}"
+                    )
                     if not df.empty:
                         latest = df.iloc[-1]
                         prev = df.iloc[-2] if len(df) > 1 else latest
@@ -61,8 +81,8 @@ class StockDataCollector:
             List of stock dictionaries
         """
         try:
-            # Get all A-shares
-            df = ak.stock_zh_a_spot_em()
+            # Get all A-shares with retry
+            df = self._retry_request(ak.stock_zh_a_spot_em)
             
             if df.empty:
                 return []
@@ -100,7 +120,7 @@ class StockDataCollector:
             DataFrame with price data
         """
         try:
-            df = ak.stock_zh_a_hist(symbol=code, period=period, adjust="qfq")
+            df = self._retry_request(ak.stock_zh_a_hist, symbol=code, period=period, adjust="qfq")
             return df
         except Exception as e:
             logger.error(f"Failed to get price for {code}: {e}")
@@ -117,7 +137,7 @@ class StockDataCollector:
         """
         try:
             # Get basic financial indicators
-            df = ak.stock_financial_analysis_indicator(symbol=code)
+            df = self._retry_request(ak.stock_financial_analysis_indicator, symbol=code)
             
             if df.empty:
                 return {}
@@ -143,7 +163,7 @@ class StockDataCollector:
             List of sector dictionaries
         """
         try:
-            df = ak.stock_board_industry_name_em()
+            df = self._retry_request(ak.stock_board_industry_name_em)
             
             if df.empty:
                 return []

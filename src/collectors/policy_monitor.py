@@ -1,5 +1,6 @@
 """Policy monitor module for tracking government policies."""
 
+import time
 from typing import List, Dict, Any
 from datetime import datetime
 
@@ -15,8 +16,27 @@ class PolicyMonitor:
         """Initialize policy monitor."""
         self.session = requests.Session()
         self.session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
         })
+        self.max_retries = 3
+        self.retry_delay = 2
+    
+    def _retry_request(self, url, timeout=15, **kwargs):
+        """Retry a request with exponential backoff."""
+        for attempt in range(self.max_retries):
+            try:
+                response = self.session.get(url, timeout=timeout, **kwargs)
+                response.raise_for_status()
+                return response
+            except Exception as e:
+                if attempt < self.max_retries - 1:
+                    delay = self.retry_delay * (2 ** attempt)
+                    logger.warning(f"Retry {attempt + 1}/{self.max_retries} for {url}: {e}")
+                    time.sleep(delay)
+                else:
+                    raise e
     
     def get_state_council_policies(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get policies from State Council.
@@ -29,7 +49,7 @@ class PolicyMonitor:
         """
         try:
             url = "http://www.gov.cn/zhengce/zuixin/"
-            response = self.session.get(url, timeout=10)
+            response = self._retry_request(url)
             response.encoding = 'utf-8'
             soup = BeautifulSoup(response.text, 'lxml')
             
@@ -68,7 +88,7 @@ class PolicyMonitor:
         """
         try:
             url = "http://www.pbc.gov.cn/goutongjiaoliu/113456/113469/index.html"
-            response = self.session.get(url, timeout=10)
+            response = self._retry_request(url)
             response.encoding = 'utf-8'
             soup = BeautifulSoup(response.text, 'lxml')
             
@@ -107,7 +127,7 @@ class PolicyMonitor:
         """
         try:
             url = "http://www.csrc.gov.cn/csrc/c100028/common_list.shtml"
-            response = self.session.get(url, timeout=10)
+            response = self._retry_request(url)
             response.encoding = 'utf-8'
             soup = BeautifulSoup(response.text, 'lxml')
             
@@ -134,6 +154,41 @@ class PolicyMonitor:
         except Exception as e:
             logger.error(f"Failed to get regulatory news: {e}")
             return []
+    
+    def get_all_policies(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """Get policies from all sources.
+        
+        Args:
+            limit: Maximum number of policies per source
+            
+        Returns:
+            List of policy dictionaries
+        """
+        all_policies = []
+        
+        # State Council
+        try:
+            state_policies = self.get_state_council_policies(limit)
+            all_policies.extend(state_policies)
+        except Exception as e:
+            logger.warning(f"Failed to get State Council policies: {e}")
+        
+        # Central Bank
+        try:
+            bank_policies = self.get_central_bank_policies(limit)
+            all_policies.extend(bank_policies)
+        except Exception as e:
+            logger.warning(f"Failed to get Central Bank policies: {e}")
+        
+        # CSRC
+        try:
+            csrc_news = self.get_regulatory_news(limit)
+            all_policies.extend(csrc_news)
+        except Exception as e:
+            logger.warning(f"Failed to get CSRC news: {e}")
+        
+        logger.info(f"Collected {len(all_policies)} policies from all sources")
+        return all_policies
     
     def analyze_policy_impact(self, policy: Dict) -> Dict[str, Any]:
         """Analyze impact of a policy.
