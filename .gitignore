@@ -49,7 +49,8 @@ logs/
 reports/
 
 # Data cache
-data/
+data/*
+!data/portfolio.json
 
 # Testing
 .pytest_cache/

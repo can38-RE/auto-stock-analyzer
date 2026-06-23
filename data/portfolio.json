@@ -1,0 +1,26 @@
+{
+  "capital": 1900,
+  "holdings": [
+    {
+      "code": "600078",
+      "name": "澄星股份",
+      "price": 14.49,
+      "cost": 14.49,
+      "shares": 100,
+      "buy_date": "2026-06-23",
+      "avg_price": 14.49
+    }
+  ],
+  "transactions": [
+    {
+      "type": "buy",
+      "code": "600078",
+      "name": "澄星股份",
+      "price": 14.49,
+      "shares": 100,
+      "date": "2026-06-23",
+      "total": 1449
+    }
+  ],
+  "updated_at": "2026-06-23T14:49:00"
+}
