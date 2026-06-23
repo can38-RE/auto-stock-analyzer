@@ -488,6 +488,46 @@ class HTMLReportGenerator:
             <h2>走势分析 + 入场策略</h2>
             <p>T+1规则：今天买入，明天才能卖出。根据趋势选择不同入场策略。</p>
             
+            <!-- 总结表格 -->
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 25px;">
+                <thead>
+                    <tr style="background: #667eea; color: white;">
+                        <th style="padding: 12px; text-align: left;">股票</th>
+                        <th style="padding: 12px; text-align: center;">趋势</th>
+                        <th style="padding: 12px; text-align: center;">策略</th>
+                        <th style="padding: 12px; text-align: right;">入场价</th>
+                        <th style="padding: 12px; text-align: right;">止损</th>
+                        <th style="padding: 12px; text-align: right;">止盈</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in trend_analysis %}
+                    <tr style="border-bottom: 1px solid #eee; background: {{ '#e8f5e9' if stock.trend.direction in ['strong_uptrend', 'uptrend'] else '#ffebee' if stock.trend.direction in ['downtrend', 'strong_downtrend'] else '#fff8e1' }};">
+                        <td style="padding: 10px;">
+                            <strong>{{ stock.name }}</strong><br>
+                            <small>{{ stock.code }} | ¥{{ "%.2f"|format(stock.current_price) }}</small>
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            {{ stock.trend.description }}
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            <strong>{{ stock.strategy.type }}</strong>
+                        </td>
+                        <td style="padding: 10px; text-align: right;">
+                            ¥{{ "%.2f"|format(stock.strategy.entry_price) }}
+                        </td>
+                        <td style="padding: 10px; text-align: right; color: #e74c3c;">
+                            ¥{{ "%.2f"|format(stock.entry_prices.stop_loss) }}
+                        </td>
+                        <td style="padding: 10px; text-align: right; color: #27ae60;">
+                            ¥{{ "%.2f"|format(stock.entry_prices.take_profit_1) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <!-- 详细分析 -->
             {% for stock in trend_analysis %}
             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 15px; border-left: 4px solid {{ '#27ae60' if stock.trend.direction in ['strong_uptrend', 'uptrend'] else '#e74c3c' if stock.trend.direction in ['downtrend', 'strong_downtrend'] else '#f39c12' }};">
                 <h3>{{ stock.name }} ({{ stock.code }})</h3>
