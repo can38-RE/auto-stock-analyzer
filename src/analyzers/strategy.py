@@ -5,6 +5,7 @@ from datetime import datetime
 
 from loguru import logger
 from src.analyzers.value_investing import ValueInvestingAnalyzer, format_value_analysis
+from src.analyzers.chokepoint import ChokepointAnalyzer
 
 
 class StrategyAnalyzer:
@@ -14,6 +15,7 @@ class StrategyAnalyzer:
         """Initialize strategy analyzer."""
         self.analysis_results = {}
         self.value_analyzer = ValueInvestingAnalyzer()
+        self.chokepoint_analyzer = ChokepointAnalyzer()
     
     def analyze(self, market_data: Dict, stock_list: List[Dict], news_data: List[Dict],
                 social_data: List[Dict] = None, policy_data: List[Dict] = None,
@@ -62,6 +64,14 @@ class StrategyAnalyzer:
         # Analyze sectors
         sector_analysis = self._analyze_sectors(stock_list)
         results["sector_analysis"] = sector_analysis
+        
+        # Chokepoint analysis (Serenity's framework)
+        chokepoint_stocks = self.chokepoint_analyzer.get_chokepoint_stocks()
+        results["chokepoint_analysis"] = {
+            "stocks": chokepoint_stocks,
+            "current_phase": self.chokepoint_analyzer.get_current_phase_stocks(),
+            "emerging_phase": self.chokepoint_analyzer.get_emerging_phase_stocks(),
+        }
         
         # Risk assessment
         risk_level = self._assess_risk(market_data, stock_list)

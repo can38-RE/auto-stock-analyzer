@@ -348,7 +348,7 @@ class HTMLReportGenerator:
         </section>
         
         <section class="section">
-            <h2>投资组合建议 (1000元本金)</h2>
+            <h2>投资组合建议 (1900元本金)</h2>
             <div class="portfolio-strategy">
                 <h3>资金配置方案</h3>
                 <p>总资金: ¥{{ portfolio_strategy.capital }}</p>
@@ -372,6 +372,55 @@ class HTMLReportGenerator:
                 <p style="margin-top: 20px;"><strong>策略总结:</strong> {{ portfolio_strategy.summary }}</p>
             </div>
         </section>
+        
+        {% if chokepoint_analysis %}
+        <section class="section">
+            <h2>Serenity瓶颈理论分析</h2>
+            <p style="font-style: italic; color: #666;">"Own the bottleneck, not the brand" - @aleabitoreddit</p>
+            <p>寻找AI供应链中不可替代的瓶颈环节，而非追逐热门品牌</p>
+            
+            <h3 style="margin-top: 20px; margin-bottom: 15px;">三阶段轮动策略</h3>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px; background: #f0f0f0; padding: 15px; border-radius: 8px;">
+                    <strong>Phase 1 (已完成)</strong><br>
+                    内存/HBM<br>
+                    <small>机构已入场</small>
+                </div>
+                <div style="flex: 1; min-width: 200px; background: #667eea; color: white; padding: 15px; border-radius: 8px;">
+                    <strong>Phase 2 (当前) ⬅️</strong><br>
+                    光收发器<br>
+                    <small>当前主战场</small>
+                </div>
+                <div style="flex: 1; min-width: 200px; background: #e8f5e9; padding: 15px; border-radius: 8px;">
+                    <strong>Phase 3 (新兴)</strong><br>
+                    SiPh/CPO<br>
+                    <small>2027-2028拐点</small>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 25px; margin-bottom: 15px;">AI供应链瓶颈图谱</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8f9fa;">
+                        <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea;">层级</th>
+                        <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea;">环节</th>
+                        <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea;">A股标的</th>
+                        <th style="padding: 10px; text-align: left; border-bottom: 2px solid #667eea;">核心逻辑</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in chokepoint_analysis.stocks[:10] %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">{{ stock.layer_description }}</td>
+                        <td style="padding: 10px;">{{ stock.importance }}</td>
+                        <td style="padding: 10px;"><strong>{{ stock.code }}</strong> {{ stock.name }}</td>
+                        <td style="padding: 10px;">{{ stock.reason }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
         
         {% if mainboard_stocks %}
         <section class="section">
