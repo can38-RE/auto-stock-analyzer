@@ -20,6 +20,21 @@ from src.generators.html_report import HTMLReportGenerator
 from src.generators.email_sender import send_daily_report
 
 
+def setup_logging():
+    """Setup logging configuration."""
+    config = get_config()
+    log_config = config.get("logging", {})
+    
+    logger.remove()
+    logger.add(sys.stderr, level=log_config.get("level", "INFO"))
+    logger.add(
+        log_config.get("file", "./logs/analyzer.log"),
+        rotation=log_config.get("max_size", "10MB"),
+        retention=log_config.get("backup_count", 5),
+        level=log_config.get("level", "INFO")
+    )
+
+
 def get_session_type() -> str:
     """Determine if this is morning or afternoon session."""
     hour = datetime.now().hour
