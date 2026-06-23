@@ -14,6 +14,7 @@ from src.collectors.research_paper import ResearchPaperCollector
 from src.collectors.company_report import CompanyReportCollector
 from src.collectors.mainboard_screener import MainboardScreener
 from src.analyzers.strategy import StrategyAnalyzer
+from src.analyzers.trend import TrendAnalyzer
 from src.generators.html_report import HTMLReportGenerator
 from src.generators.email_sender import send_daily_report
 
@@ -70,6 +71,12 @@ def run_daily_analysis():
         buy_plan = screener.generate_buy_plan(screened_stocks, budget=budget)
         logger.info(f"Screened {len(screened_stocks)} mainboard stocks, buy plan: {buy_plan['summary']}")
         
+        # Step 1.6: Trend analysis for top stocks
+        logger.info("Step 1.6: Analyzing trends for top stocks...")
+        trend_analyzer = TrendAnalyzer()
+        trend_results = trend_analyzer.analyze_multiple(screened_stocks[:10])
+        logger.info(f"Completed trend analysis for {len(trend_results)} stocks")
+        
         # Step 2: Analyze data
         logger.info("Step 2: Analyzing data...")
         strategy_analyzer = StrategyAnalyzer()
@@ -87,6 +94,7 @@ def run_daily_analysis():
         # Add screener results to analysis
         analysis_results['mainboard_stocks'] = screened_stocks
         analysis_results['buy_plan'] = buy_plan
+        analysis_results['trend_analysis'] = trend_results
         
         # Step 3: Generate report
         logger.info("Step 3: Generating report...")

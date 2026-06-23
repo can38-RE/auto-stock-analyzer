@@ -483,6 +483,57 @@ class HTMLReportGenerator:
         </section>
         {% endif %}
         
+        {% if trend_analysis %}
+        <section class="section">
+            <h2>走势分析 + 入场策略</h2>
+            <p>T+1规则：今天买入，明天才能卖出。根据趋势选择不同入场策略。</p>
+            
+            {% for stock in trend_analysis %}
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 15px; border-left: 4px solid {{ '#27ae60' if stock.trend.direction in ['strong_uptrend', 'uptrend'] else '#e74c3c' if stock.trend.direction in ['downtrend', 'strong_downtrend'] else '#f39c12' }};">
+                <h3>{{ stock.name }} ({{ stock.code }})</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 10px;">
+                    <div style="flex: 1; min-width: 150px;">
+                        <p><strong>当前价:</strong> ¥{{ "%.2f"|format(stock.current_price) }}</p>
+                        <p><strong>今日涨跌:</strong> <span style="color: {{ '#e74c3c' if stock.today_change > 0 else '#27ae60' }}">{{ "%+.2f"|format(stock.today_change) }}%</span></p>
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <p><strong>趋势:</strong> {{ stock.trend.description }}</p>
+                        <p><strong>MA5/10/20:</strong> {{ stock.trend.ma5 }}/{{ stock.trend.ma10 }}/{{ stock.trend.ma20 }}</p>
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <p><strong>支撑:</strong> ¥{{ stock.support_resistance.support }}</p>
+                        <p><strong>阻力:</strong> ¥{{ stock.support_resistance.resistance }}</p>
+                    </div>
+                </div>
+                
+                <div style="background: white; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                    <h4 style="color: #667eea;">{{ stock.strategy.type }}</h4>
+                    <p><strong>建议动作:</strong> {{ stock.strategy.action }}</p>
+                    <p><strong>入场价:</strong> ¥{{ "%.2f"|format(stock.strategy.entry_price) }}</p>
+                    <p><strong>风险等级:</strong> {{ stock.strategy.risk_level }}</p>
+                    
+                    <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px;">
+                        <div style="flex: 1; min-width: 120px;">
+                            <p><strong>激进入场:</strong> ¥{{ "%.2f"|format(stock.entry_prices.aggressive) }}</p>
+                            <p><strong>稳��入场:</strong> ¥{{ "%.2f"|format(stock.entry_prices.moderate) }}</p>
+                        </div>
+                        <div style="flex: 1; min-width: 120px;">
+                            <p><strong>止损:</strong> ¥{{ "%.2f"|format(stock.entry_prices.stop_loss) }} (-7%)</p>
+                            <p><strong>止盈1:</strong> ¥{{ "%.2f"|format(stock.entry_prices.take_profit_1) }} (+10%)</p>
+                        </div>
+                    </div>
+                    
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        {% for tip in stock.strategy.tips %}
+                        <li>{{ tip }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+        
         <footer>
             <p>声明: 本报告仅供参考，不构成投资建议。股市有风险，投资需谨慎。</p>
             <p>AutoStockAnalyzer v1.0 | 生成时间: {{ analysis_time }}</p>
