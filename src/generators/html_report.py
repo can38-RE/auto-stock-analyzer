@@ -757,6 +757,163 @@ class HTMLReportGenerator:
         </section>
         {% endif %}
         
+        {% if expert_analysis %}
+        <section class="section">
+            <h2>投资大师策略分析</h2>
+            <p>综合10位国内外投资大师的选股逻辑，多维度评估</p>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px;">
+                <div style="flex: 1; min-width: 200px; background: #e8f5e9; padding: 15px; border-radius: 8px;">
+                    <h4>国际大师</h4>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>巴菲特 - 价值投资</li>
+                        <li>芒格 - 多元思维</li>
+                        <li>彼得林奇 - 成长投资</li>
+                        <li>格雷厄姆 - 安全边际</li>
+                        <li>霍华德马克斯 - 周期</li>
+                    </ul>
+                </div>
+                <div style="flex: 1; min-width: 200px; background: #e3f2fd; padding: 15px; border-radius: 8px;">
+                    <h4>中国大师</h4>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>但斌 - 长期持有</li>
+                        <li>林园 - 医药消费</li>
+                        <li>段永平 - 商业模式</li>
+                        <li>张磊 - 创新投资</li>
+                        <li>邱国鹭 - 行业格局</li>
+                    </ul>
+                </div>
+            </div>
+            
+            {% if expert_analysis.top_stocks %}
+            <h3 style="margin-top: 20px;">大师共识推荐</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #667eea; color: white;">
+                        <th style="padding: 10px; text-align: left;">股票</th>
+                        <th style="padding: 10px; text-align: center;">大师评分</th>
+                        <th style="padding: 10px; text-align: left;">核心观点</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in expert_analysis.top_stocks[:5] %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">{{ stock.name }} ({{ stock.code }})</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span style="background: {{ '#27ae60' if stock.total_score > 70 else '#f39c12' if stock.total_score > 50 else '#e74c3c' }}; color: white; padding: 3px 8px; border-radius: 10px;">
+                                {{ "%.0f"|format(stock.total_score) }}
+                            </span>
+                        </td>
+                        <td style="padding: 10px;">{{ stock.top_reason }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </section>
+        {% endif %}
+        
+        {% if policy_recommendations %}
+        <section class="section">
+            <h2>政策导向分析</h2>
+            <p>基于十四五规划和当前政策热点，分析政策红利方向</p>
+            
+            {% if policy_hotspots %}
+            <h3 style="margin-top: 15px;">当前政策热点</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                {% for hotspot in policy_hotspots[:5] %}
+                <span style="background: #ff9800; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9em;">
+                    {{ hotspot }}
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% if policy_recommendations %}
+            <h3 style="margin-top: 20px;">政策受益股</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #ff9800; color: white;">
+                        <th style="padding: 10px; text-align: left;">股票</th>
+                        <th style="padding: 10px; text-align: center;">政策评分</th>
+                        <th style="padding: 10px; text-align: left;">相关政策</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in policy_recommendations[:5] %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">{{ stock.name }} ({{ stock.code }})</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span style="background: #ff9800; color: white; padding: 3px 8px; border-radius: 10px;">
+                                {{ "%.0f"|format(stock.score) }}
+                            </span>
+                        </td>
+                        <td style="padding: 10px;">{{ stock.policies|join(', ') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </section>
+        {% endif %}
+        
+        {% if intl_overview %}
+        <section class="section">
+            <h2>国际形势分析</h2>
+            <p>全球地缘政治和经济形势对A股的影响</p>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px;">
+                <div style="flex: 1; min-width: 200px; background: #e3f2fd; padding: 15px; border-radius: 8px;">
+                    <h4>中美关系</h4>
+                    <p>{{ intl_overview.us_china|default('持续博弈，科技竞争加剧') }}</p>
+                </div>
+                <div style="flex: 1; min-width: 200px; background: #fff3e0; padding: 15px; border-radius: 8px;">
+                    <h4>全球经济</h4>
+                    <p>{{ intl_overview.global_economy|default('美联储政策影响全球资金流向') }}</p>
+                </div>
+                <div style="flex: 1; min-width: 200px; background: #fce4ec; padding: 15px; border-radius: 8px;">
+                    <h4>地缘风险</h4>
+                    <p>{{ intl_overview.geopolitical|default('关注区域冲突对能源价格影响') }}</p>
+                </div>
+            </div>
+            
+            {% if intl_warnings %}
+            <h3 style="margin-top: 20px;">风险提示</h3>
+            <ul style="background: #fff3e0; padding: 15px 15px 15px 35px; border-radius: 8px;">
+                {% for warning in intl_warnings[:5] %}
+                <li style="margin-bottom: 5px;">{{ warning }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            
+            {% if intl_recommendations %}
+            <h3 style="margin-top: 20px;">国际形势受益股</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #1565c0; color: white;">
+                        <th style="padding: 10px; text-align: left;">股票</th>
+                        <th style="padding: 10px; text-align: center;">国际评分</th>
+                        <th style="padding: 10px; text-align: left;">相关主题</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in intl_recommendations[:5] %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">{{ stock.name }} ({{ stock.code }})</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span style="background: #1565c0; color: white; padding: 3px 8px; border-radius: 10px;">
+                                {{ "%.0f"|format(stock.score) }}
+                            </span>
+                        </td>
+                        <td style="padding: 10px;">{{ stock.reasons|join(', ') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </section>
+        {% endif %}
+        
         <footer>
             <p>声明: 本报告仅供参考，不构成投资建议。股市有风险，投资需谨慎。</p>
             <p>AutoStockAnalyzer v1.0 | 生成时间: {{ analysis_time }}</p>

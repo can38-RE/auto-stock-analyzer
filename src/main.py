@@ -14,10 +14,14 @@ from src.collectors.policy_monitor import PolicyMonitor
 from src.collectors.research_paper import ResearchPaperCollector
 from src.collectors.company_report import CompanyReportCollector
 from src.collectors.mainboard_screener import MainboardScreener
+from src.collectors.full_market_scanner import FullMarketScanner
 from src.analyzers.strategy import StrategyAnalyzer
 from src.analyzers.trend import TrendAnalyzer
 from src.analyzers.portfolio import PortfolioTracker
 from src.analyzers.metaphysics import MetaphysicsAnalyzer
+from src.analyzers.expert_strategies import ExpertStrategyAnalyzer
+from src.analyzers.policy_analysis import PolicyAnalyzer
+from src.analyzers.international import InternationalAnalyzer
 from src.generators.html_report import HTMLReportGenerator
 from src.generators.email_sender import send_daily_report
 
@@ -107,23 +111,58 @@ def run_daily_analysis():
         portfolio_summary = portfolio.get_portfolio_summary(current_prices)
         logger.info(f"Portfolio: {portfolio_summary['holdings_count']} holdings, P&L: {portfolio_summary['total_pnl']:+.2f}元")
         
-        # Step 1.8: Metaphysics analysis (玄学分析)
-        logger.info("Step 1.8: Running metaphysics analysis...")
+        # Step 1.8: Full market scanner (comprehensive scan with 1yr data)
+        logger.info("Step 1.8: Running full market scanner (1yr data)...")
+        scanner = FullMarketScanner()
+        scanned_stocks = scanner.scan(
+            budget=budget,
+            max_price=19.0,
+            min_price=3.0,
+            top_n=20,
+            use_cache=True,
+        )
+        scanned_dict = scanner.to_dict_list(scanned_stocks)
+        scan_buy_plan = scanner.generate_buy_plan(scanned_stocks, budget=budget)
+        logger.info(f"Full scan: {len(scanned_stocks)} top stocks, buy plan: {scan_buy_plan['summary']}")
+
+        # Step 1.9: Expert strategy analysis
+        logger.info("Step 1.9: Running expert strategy analysis...")
+        expert_analyzer = ExpertStrategyAnalyzer()
+        expert_results = expert_analyzer.analyze_multiple(scanned_dict[:15], top_n=10)
+        logger.info(f"Expert analysis: {len(expert_results)} stocks analyzed")
+
+        # Step 1.10: Policy analysis
+        logger.info("Step 1.10: Running policy analysis...")
+        policy_analyzer = PolicyAnalyzer()
+        policy_recommendations = policy_analyzer.generate_recommendations(top_n=10)
+        policy_hotspots = policy_analyzer.get_blazing_policies()
+        logger.info(f"Policy analysis: {len(policy_recommendations)} recommendations, {len(policy_hotspots)} blazing policies")
+
+        # Step 1.11: International analysis
+        logger.info("Step 1.11: Running international analysis...")
+        intl_analyzer = InternationalAnalyzer()
+        intl_recommendations = intl_analyzer.generate_recommendations(top_n=10)
+        intl_warnings = intl_analyzer.get_risk_warnings()
+        intl_overview = intl_analyzer.get_global_overview()
+        logger.info(f"International analysis: {len(intl_recommendations)} recs, {len(intl_warnings)} warnings")
+
+        # Step 1.12: Metaphysics analysis (玄学分析)
+        logger.info("Step 1.12: Running metaphysics analysis...")
         metaphysics = MetaphysicsAnalyzer()
         day_fortune = metaphysics.analyze_day_fortune()
-        
+
         # Analyze top stocks with metaphysics
         metaphysics_results = []
-        for stock in screened_stocks[:5]:
+        for stock in scanned_stocks[:5]:
             meta = metaphysics.analyze_stock_metaphysics(
-                stock['code'], 
-                stock.get('name', ''),
-                stock.get('sector', '')
+                stock.code,
+                stock.name,
+                "",
             )
             metaphysics_results.append(meta)
-        
+
         logger.info(f"Metaphysics analysis: Day score {day_fortune['fortune_score']}, {len(metaphysics_results)} stocks analyzed")
-        
+
         # Step 2: Analyze data
         logger.info("Step 2: Analyzing data...")
         strategy_analyzer = StrategyAnalyzer()
@@ -147,6 +186,35 @@ def run_daily_analysis():
         analysis_results['portfolio'] = portfolio_summary
         analysis_results['metaphysics'] = day_fortune
         analysis_results['metaphysics_stocks'] = metaphysics_results
+
+        # Add new analysis modules
+        analysis_results['full_scan_stocks'] = scanned_dict[:20]
+        analysis_results['scan_buy_plan'] = scan_buy_plan
+        analysis_results['expert_analysis'] = [
+            {
+                "code": r.code,
+                "name": r.name,
+                "composite_score": r.composite_score,
+                "composite_verdict": r.composite_verdict.value,
+                "consensus_summary": r.consensus_summary,
+                "top_reasons": r.top_reasons,
+                "expert_details": [
+                    {
+                        "expert": es.expert_name,
+                        "score": es.score,
+                        "verdict": es.verdict.value,
+                        "reasoning": es.reasoning[:2],
+                    }
+                    for es in r.expert_scores
+                ],
+            }
+            for r in expert_results
+        ]
+        analysis_results['policy_recommendations'] = policy_recommendations
+        analysis_results['policy_hotspots'] = policy_hotspots
+        analysis_results['intl_recommendations'] = intl_recommendations
+        analysis_results['intl_warnings'] = intl_warnings
+        analysis_results['intl_overview'] = intl_overview
         
         # Step 3: Generate report
         logger.info("Step 3: Generating report...")
