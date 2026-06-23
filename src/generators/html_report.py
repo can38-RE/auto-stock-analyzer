@@ -845,10 +845,10 @@ class HTMLReportGenerator:
                         <td style="padding: 10px;">{{ stock.name }} ({{ stock.code }})</td>
                         <td style="padding: 10px; text-align: center;">
                             <span style="background: #ff9800; color: white; padding: 3px 8px; border-radius: 10px;">
-                                {{ "%.0f"|format(stock.score) }}
+                                {{ "%.0f"|format(stock.policy_score) }}
                             </span>
                         </td>
-                        <td style="padding: 10px;">{{ stock.policies|join(', ') }}</td>
+                        <td style="padding: 10px;">{{ stock.matched_areas|join(', ') }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -902,10 +902,10 @@ class HTMLReportGenerator:
                         <td style="padding: 10px;">{{ stock.name }} ({{ stock.code }})</td>
                         <td style="padding: 10px; text-align: center;">
                             <span style="background: #1565c0; color: white; padding: 3px 8px; border-radius: 10px;">
-                                {{ "%.0f"|format(stock.score) }}
+                                {{ "%.0f"|format(stock.international_score) }}
                             </span>
                         </td>
-                        <td style="padding: 10px;">{{ stock.reasons|join(', ') }}</td>
+                        <td style="padding: 10px;">{{ stock.beneficiary_events|join(', ') }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
