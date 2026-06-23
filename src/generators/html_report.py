@@ -422,6 +422,71 @@ class HTMLReportGenerator:
             </div>
         </section>
         
+        {% if portfolio %}
+        <section class="section">
+            <h2>我的持仓</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px;">
+                <div style="flex: 1; min-width: 150px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <p><strong>总资金</strong></p>
+                    <p style="font-size: 1.5em; color: #667eea;">¥{{ portfolio.capital }}</p>
+                </div>
+                <div style="flex: 1; min-width: 150px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <p><strong>持仓市值</strong></p>
+                    <p style="font-size: 1.5em;">¥{{ portfolio.total_value }}</p>
+                </div>
+                <div style="flex: 1; min-width: 150px; background: {{ '#e8f5e9' if portfolio.total_pnl >= 0 else '#ffebee' }}; padding: 15px; border-radius: 8px;">
+                    <p><strong>总盈亏</strong></p>
+                    <p style="font-size: 1.5em; color: {{ '#e74c3c' if portfolio.total_pnl < 0 else '#27ae60' }};">
+                        {{ "%+.2f"|format(portfolio.total_pnl) }}元
+                    </p>
+                    <p>({{ "%+.2f"|format(portfolio.total_pnl_pct) }}%)</p>
+                </div>
+                <div style="flex: 1; min-width: 150px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <p><strong>可用现金</strong></p>
+                    <p style="font-size: 1.5em;">¥{{ portfolio.cash }}</p>
+                </div>
+            </div>
+            
+            {% if portfolio.holdings %}
+            <h3>持仓明细</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <thead>
+                    <tr style="background: #667eea; color: white;">
+                        <th style="padding: 12px; text-align: left;">股票</th>
+                        <th style="padding: 12px; text-align: center;">持股</th>
+                        <th style="padding: 12px; text-align: right;">成本</th>
+                        <th style="padding: 12px; text-align: right;">现价</th>
+                        <th style="padding: 12px; text-align: right;">市值</th>
+                        <th style="padding: 12px; text-align: right;">盈亏</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in portfolio.holdings %}
+                    <tr style="border-bottom: 1px solid #eee; background: {{ '#ffebee' if h.pnl < 0 else '#e8f5e9' }};">
+                        <td style="padding: 10px;">
+                            <strong>{{ h.name }}</strong><br>
+                            <small>{{ h.code }}</small>
+                        </td>
+                        <td style="padding: 10px; text-align: center;">{{ h.shares }}股</td>
+                        <td style="padding: 10px; text-align: right;">¥{{ "%.2f"|format(h.cost) }}</td>
+                        <td style="padding: 10px; text-align: right;">¥{{ "%.2f"|format(h.current_price) }}</td>
+                        <td style="padding: 10px; text-align: right;">¥{{ "%.2f"|format(h.value) }}</td>
+                        <td style="padding: 10px; text-align: right; color: {{ '#e74c3c' if h.pnl < 0 else '#27ae60' }};">
+                            {{ "%+.2f"|format(h.pnl) }}元<br>
+                            <small>({{ "%+.2f"|format(h.pnl_pct) }}%)</small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+            
+            {% if portfolio.holdings_count == 0 %}
+            <p style="text-align: center; color: #666; padding: 20px;">暂无持仓</p>
+            {% endif %}
+        </section>
+        {% endif %}
+        
         {% if chokepoint_analysis %}
         <section class="section">
             <h2>Serenity瓶颈理论分析</h2>

@@ -16,6 +16,7 @@ from src.collectors.company_report import CompanyReportCollector
 from src.collectors.mainboard_screener import MainboardScreener
 from src.analyzers.strategy import StrategyAnalyzer
 from src.analyzers.trend import TrendAnalyzer
+from src.analyzers.portfolio import PortfolioTracker
 from src.generators.html_report import HTMLReportGenerator
 from src.generators.email_sender import send_daily_report
 
@@ -89,6 +90,22 @@ def run_daily_analysis():
         trend_results = trend_analyzer.analyze_multiple(screened_stocks[:10])
         logger.info(f"Completed trend analysis for {len(trend_results)} stocks")
         
+        # Step 1.7: Portfolio tracking
+        logger.info("Step 1.7: Updating portfolio...")
+        portfolio = PortfolioTracker()
+        current_prices = {s['code']: s['price'] for s in screened_stocks}
+        # Add current holdings prices
+        for h in portfolio.get_holdings():
+            if h['code'] not in current_prices:
+                # Try to get current price
+                for s in stock_list:
+                    if s.get('code') == h['code']:
+                        current_prices[h['code']] = s.get('price', h['price'])
+                        break
+        
+        portfolio_summary = portfolio.get_portfolio_summary(current_prices)
+        logger.info(f"Portfolio: {portfolio_summary['holdings_count']} holdings, P&L: {portfolio_summary['total_pnl']:+.2f}元")
+        
         # Step 2: Analyze data
         logger.info("Step 2: Analyzing data...")
         strategy_analyzer = StrategyAnalyzer()
@@ -103,12 +120,13 @@ def run_daily_analysis():
         
         logger.info(f"Analysis complete. Generated {len(analysis_results.get('recommendations', []))} recommendations")
         
-        # Add session info and screener results to analysis
+        # Add session info, screener results, and portfolio to analysis
         analysis_results['session'] = session
         analysis_results['session_label'] = "早盘" if session == "morning" else "午盘"
         analysis_results['mainboard_stocks'] = screened_stocks
         analysis_results['buy_plan'] = buy_plan
         analysis_results['trend_analysis'] = trend_results
+        analysis_results['portfolio'] = portfolio_summary
         
         # Step 3: Generate report
         logger.info("Step 3: Generating report...")
