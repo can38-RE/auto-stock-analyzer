@@ -8,7 +8,11 @@
       "cost": 14.49,
       "shares": 100,
       "buy_date": "2026-06-23",
-      "avg_price": 14.49
+      "avg_price": 14.49,
+      "current_price": 13.81,
+      "pnl": -68,
+      "pnl_pct": -4.69,
+      "note": "亏损中，止损位13.80元"
     }
   ],
   "transactions": [
@@ -22,5 +26,12 @@
       "total": 1449
     }
   ],
-  "updated_at": "2026-06-23T14:49:00"
+  "cash": 451,
+  "total_cost": 1449,
+  "total_value": 1381,
+  "total_pnl": -68,
+  "total_pnl_pct": -4.69,
+  "updated_at": "2026-06-23T17:00:00",
+  "status": "亏损中",
+  "action": "明天开盘观察，跌破13.80止损"
 }

@@ -164,7 +164,14 @@ class PortfolioTracker:
         holding_details = []
         for h in holdings:
             code = h["code"]
-            current_price = current_prices.get(code, h["price"]) if current_prices else h["price"]
+            # Priority: 1) current_prices param, 2) current_price in portfolio, 3) buy price
+            if current_prices and code in current_prices:
+                current_price = current_prices[code]
+            elif "current_price" in h:
+                current_price = h["current_price"]
+            else:
+                current_price = h["price"]
+            
             value = current_price * h["shares"]
             cost = h["cost"] * h["shares"]
             pnl = value - cost
