@@ -210,8 +210,13 @@ class HTMLReportGenerator:
 <body>
     <div class="container">
         <header>
-            <h1>AutoStockAnalyzer 每日分析报告</h1>
-            <p>日期: {{ date }} | 分析时间: {{ analysis_time }}</p>
+            <h1>{{ session_label|default('早盘') }}分析报告</h1>
+            <p>日期: {{ date }} | 分析时间: {{ analysis_time }} | 时段: {{ session_label|default('早盘') }}</p>
+            {% if session == 'morning' %}
+            <p style="font-size: 0.9em; opacity: 0.9;">早盘策略: 为9:30开盘做准备，关注隔夜消息和全球市场</p>
+            {% else %}
+            <p style="font-size: 0.9em; opacity: 0.9;">午盘策略: 关注上午走势，为14:30午后交易做准备</p>
+            {% endif %}
         </header>
         
         <section class="section">
@@ -246,6 +251,50 @@ class HTMLReportGenerator:
             <p><strong>风险因素:</strong> {{ risk_level.factors|join(', ') }}</p>
             {% endif %}
         </section>
+        
+        {% if session == 'morning' %}
+        <section class="section" style="border-left: 4px solid #667eea;">
+            <h2>早盘策略 (9:30开盘前)</h2>
+            <div style="background: #e8f5e9; padding: 15px; border-radius: 8px;">
+                <h3>开盘前准备</h3>
+                <ul>
+                    <li>关注隔夜美股和全球市场走势</li>
+                    <li>查看今日重要经济数据发布时间</li>
+                    <li>确认目标股票的开盘价位置</li>
+                    <li>设置好止损单，控制风险</li>
+                </ul>
+            </div>
+            <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                <h3>早盘买入时机</h3>
+                <ul>
+                    <li><strong>开盘急跌:</strong> 观察是否是洗盘，等企稳后买入</li>
+                    <li><strong>高开:</strong> 等回调到支撑位再买，不要追高</li>
+                    <li><strong>平开:</strong> 关注前30分钟走势，确认方向</li>
+                </ul>
+            </div>
+        </section>
+        {% else %}
+        <section class="section" style="border-left: 4px solid #ff9800;">
+            <h2>午盘策略 (14:30午后交易)</h2>
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px;">
+                <h3>上午走势回顾</h3>
+                <ul>
+                    <li>分析上午大盘和个股表现</li>
+                    <li>确认早盘买入的股票是否按预期运行</li>
+                    <li>观察成交量变化和资金流向</li>
+                </ul>
+            </div>
+            <div style="background: #fce4ec; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                <h3>午后操作建议</h3>
+                <ul>
+                    <li><strong>上午强势:</strong> 可继续持有或加仓</li>
+                    <li><strong>上午弱势:</strong> 考虑减仓或止损</li>
+                    <li><strong>尾盘拉升:</strong> 注意是否是诱多，谨慎追涨</li>
+                    <li><strong>尾盘跳水:</strong> 可能是抄底机会，但要确认支撑</li>
+                </ul>
+            </div>
+        </section>
+        {% endif %}
         
         <section class="section">
             <h2>新闻分析</h2>

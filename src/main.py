@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+from datetime import datetime
 
 from loguru import logger
 
@@ -19,30 +20,26 @@ from src.generators.html_report import HTMLReportGenerator
 from src.generators.email_sender import send_daily_report
 
 
-def setup_logging():
-    """Setup logging configuration."""
-    config = get_config()
-    log_config = config.get("logging", {})
-    
-    logger.remove()
-    logger.add(sys.stderr, level=log_config.get("level", "INFO"))
-    logger.add(
-        log_config.get("file", "./logs/analyzer.log"),
-        rotation=log_config.get("max_size", "10MB"),
-        retention=log_config.get("backup_count", 5),
-        level=log_config.get("level", "INFO")
-    )
+def get_session_type() -> str:
+    """Determine if this is morning or afternoon session."""
+    hour = datetime.now().hour
+    if hour < 12:
+        return "morning"
+    else:
+        return "afternoon"
 
 
 def run_daily_analysis():
     """Run daily stock analysis pipeline."""
-    logger.info("Starting daily stock analysis...")
+    session = get_session_type()
+    logger.info(f"Starting {session} stock analysis...")
     
     try:
         # Load configuration
         config = get_config()
         logger.info(f"Market: {config.market.get('name', 'A股')}")
         logger.info(f"Capital: {config.capital.get('initial', 1000)} {config.capital.get('currency', 'CNY')}")
+        logger.info(f"Session: {session}")
         
         # Step 1: Collect data
         logger.info("Step 1: Collecting data...")
@@ -91,7 +88,9 @@ def run_daily_analysis():
         
         logger.info(f"Analysis complete. Generated {len(analysis_results.get('recommendations', []))} recommendations")
         
-        # Add screener results to analysis
+        # Add session info and screener results to analysis
+        analysis_results['session'] = session
+        analysis_results['session_label'] = "早盘" if session == "morning" else "午盘"
         analysis_results['mainboard_stocks'] = screened_stocks
         analysis_results['buy_plan'] = buy_plan
         analysis_results['trend_analysis'] = trend_results
