@@ -111,20 +111,16 @@ def run_daily_analysis():
         portfolio_summary = portfolio.get_portfolio_summary(current_prices)
         logger.info(f"Portfolio: {portfolio_summary['holdings_count']} holdings, P&L: {portfolio_summary['total_pnl']:+.2f}元")
         
-        # Step 1.8: Full market scanner (comprehensive scan with 1yr data)
-        logger.info("Step 1.8: Running full market scanner (1yr data)...")
-        scanner = FullMarketScanner()
-        scanned_stocks = scanner.scan(
-            budget=budget,
-            max_price=19.0,
-            min_price=3.0,
-            top_n=20,
-            use_cache=True,
-        )
-        scanned_dict = scanner.to_dict_list(scanned_stocks)
-        scan_buy_plan = scanner.generate_buy_plan(scanned_stocks, budget=budget)
-        logger.info(f"Full scan: {len(scanned_stocks)} top stocks, buy plan: {scan_buy_plan['summary']}")
-
+        # Step 1.8: Mainboard stock screening (fast, targeted list)
+        logger.info("Step 1.8: Screening mainboard stocks...")
+        screener = MainboardScreener()
+        screened_stocks = screener.screen_stocks(budget=budget, top_n=20)
+        buy_plan = screener.generate_buy_plan(screened_stocks, budget=budget)
+        logger.info(f"Screened {len(screened_stocks)} mainboard stocks, buy plan: {buy_plan['summary']}")
+        
+        # Convert to dict format for other analyzers
+        scanned_dict = screened_stocks
+        
         # Step 1.9: Expert strategy analysis
         logger.info("Step 1.9: Running expert strategy analysis...")
         expert_analyzer = ExpertStrategyAnalyzer()
@@ -153,10 +149,10 @@ def run_daily_analysis():
 
         # Analyze top stocks with metaphysics
         metaphysics_results = []
-        for stock in scanned_stocks[:5]:
+        for stock in screened_stocks[:5]:
             meta = metaphysics.analyze_stock_metaphysics(
-                stock.code,
-                stock.name,
+                stock.get('code', ''),
+                stock.get('name', ''),
                 "",
             )
             metaphysics_results.append(meta)
@@ -188,8 +184,7 @@ def run_daily_analysis():
         analysis_results['metaphysics_stocks'] = metaphysics_results
 
         # Add new analysis modules
-        analysis_results['full_scan_stocks'] = scanned_dict[:20]
-        analysis_results['scan_buy_plan'] = scan_buy_plan
+        analysis_results['mainboard_stocks'] = scanned_dict[:20]
         analysis_results['expert_analysis'] = [
             {
                 "code": r.code,
