@@ -134,6 +134,9 @@ class MetaphysicsAnalyzer:
         Returns:
             Fortune analysis
         """
+        if date is None:
+            date = self.today
+        
         ganzhi = self.get_ganzhi(date)
         
         # Determine day element
