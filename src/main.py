@@ -17,6 +17,7 @@ from src.collectors.mainboard_screener import MainboardScreener
 from src.analyzers.strategy import StrategyAnalyzer
 from src.analyzers.trend import TrendAnalyzer
 from src.analyzers.portfolio import PortfolioTracker
+from src.analyzers.metaphysics import MetaphysicsAnalyzer
 from src.generators.html_report import HTMLReportGenerator
 from src.generators.email_sender import send_daily_report
 
@@ -106,6 +107,23 @@ def run_daily_analysis():
         portfolio_summary = portfolio.get_portfolio_summary(current_prices)
         logger.info(f"Portfolio: {portfolio_summary['holdings_count']} holdings, P&L: {portfolio_summary['total_pnl']:+.2f}元")
         
+        # Step 1.8: Metaphysics analysis (玄学分析)
+        logger.info("Step 1.8: Running metaphysics analysis...")
+        metaphysics = MetaphysicsAnalyzer()
+        day_fortune = metaphysics.analyze_day_fortune()
+        
+        # Analyze top stocks with metaphysics
+        metaphysics_results = []
+        for stock in screened_stocks[:5]:
+            meta = metaphysics.analyze_stock_metaphysics(
+                stock['code'], 
+                stock.get('name', ''),
+                stock.get('sector', '')
+            )
+            metaphysics_results.append(meta)
+        
+        logger.info(f"Metaphysics analysis: Day score {day_fortune['fortune_score']}, {len(metaphysics_results)} stocks analyzed")
+        
         # Step 2: Analyze data
         logger.info("Step 2: Analyzing data...")
         strategy_analyzer = StrategyAnalyzer()
@@ -120,13 +138,15 @@ def run_daily_analysis():
         
         logger.info(f"Analysis complete. Generated {len(analysis_results.get('recommendations', []))} recommendations")
         
-        # Add session info, screener results, and portfolio to analysis
+        # Add session info, screener results, portfolio, and metaphysics to analysis
         analysis_results['session'] = session
         analysis_results['session_label'] = "早盘" if session == "morning" else "午盘"
         analysis_results['mainboard_stocks'] = screened_stocks
         analysis_results['buy_plan'] = buy_plan
         analysis_results['trend_analysis'] = trend_results
         analysis_results['portfolio'] = portfolio_summary
+        analysis_results['metaphysics'] = day_fortune
+        analysis_results['metaphysics_stocks'] = metaphysics_results
         
         # Step 3: Generate report
         logger.info("Step 3: Generating report...")

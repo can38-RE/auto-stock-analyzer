@@ -688,6 +688,75 @@ class HTMLReportGenerator:
         </section>
         {% endif %}
         
+        {% if metaphysics %}
+        <section class="section" style="border-left: 4px solid #9c27b0;">
+            <h2>玄学分析 (仅供参考)</h2>
+            <p style="font-style: italic; color: #666;">周易五行 · 黄历宜忌 · 仅供参考娱乐</p>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 15px;">
+                <div style="flex: 1; min-width: 150px; background: #f3e5f5; padding: 15px; border-radius: 8px;">
+                    <p><strong>今日干支</strong></p>
+                    <p style="font-size: 1.3em;">{{ metaphysics.ganzhi.day }}</p>
+                    <p>日主: {{ metaphysics.day_element }}</p>
+                </div>
+                <div style="flex: 1; min-width: 150px; background: {{ '#e8f5e9' if metaphysics.fortune_score > 60 else '#ffebee' if metaphysics.fortune_score < 40 else '#fff8e1' }}; padding: 15px; border-radius: 8px;">
+                    <p><strong>今日评分</strong></p>
+                    <p style="font-size: 1.5em; color: {{ '#27ae60' if metaphysics.fortune_score > 60 else '#e74c3c' if metaphysics.fortune_score < 40 else '#f39c12' }};">
+                        {{ metaphysics.fortune_score }}/100
+                    </p>
+                    <p>{{ metaphysics.fortune_desc }}</p>
+                </div>
+                <div style="flex: 1; min-width: 150px; background: #e3f2fd; padding: 15px; border-radius: 8px;">
+                    <p><strong>宜</strong></p>
+                    <p>{{ metaphysics.yi|join(', ') }}</p>
+                </div>
+                <div style="flex: 1; min-width: 150px; background: #fce4ec; padding: 15px; border-radius: 8px;">
+                    <p><strong>忌</strong></p>
+                    <p>{{ metaphysics.ji|join(', ') }}</p>
+                </div>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <p><strong>有利行业:</strong> {{ metaphysics.favorable_sectors|join(', ') }}</p>
+                <p><strong>不利行业:</strong> {{ metaphysics.unfavorable_sectors|join(', ') }}</p>
+            </div>
+            
+            {% if metaphysics_stocks %}
+            <h3 style="margin-top: 20px;">个股玄学评分</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f3e5f5;">
+                        <th style="padding: 10px; text-align: left;">股票</th>
+                        <th style="padding: 10px; text-align: center;">五行</th>
+                        <th style="padding: 10px; text-align: center;">相性</th>
+                        <th style="padding: 10px; text-align: center;">玄学评分</th>
+                        <th style="padding: 10px; text-align: left;">建议</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in metaphysics_stocks %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">{{ stock.name }} ({{ stock.code }})</td>
+                        <td style="padding: 10px; text-align: center;">{{ stock.stock_element }}</td>
+                        <td style="padding: 10px; text-align: center;">{{ stock.compatibility.relationship }}</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span style="background: {{ '#27ae60' if stock.meta_score > 60 else '#e74c3c' if stock.meta_score < 40 else '#f39c12' }}; color: white; padding: 3px 8px; border-radius: 10px;">
+                                {{ stock.meta_score }}
+                            </span>
+                        </td>
+                        <td style="padding: 10px;">{{ stock.advice }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+            
+            <p style="margin-top: 15px; font-size: 0.9em; color: #999;">
+                * 玄学分析仅供文化参考，不构成投资建议。投资需基于基本面和技术分析。
+            </p>
+        </section>
+        {% endif %}
+        
         <footer>
             <p>声明: 本报告仅供参考，不构成投资建议。股市有风险，投资需谨慎。</p>
             <p>AutoStockAnalyzer v1.0 | 生成时间: {{ analysis_time }}</p>

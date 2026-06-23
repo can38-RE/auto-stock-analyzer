@@ -1,5 +1,5 @@
 {
-  "capital": 1900,
+  "capital": 1800,
   "holdings": [
     {
       "code": "600078",
@@ -12,7 +12,10 @@
       "current_price": 13.81,
       "pnl": -68,
       "pnl_pct": -4.69,
-      "note": "亏损中，止损位13.80元"
+      "stop_loss": 13.80,
+      "take_profit": 15.50,
+      "status": "亏损中-观察",
+      "action": "跌破13.80止损"
     }
   ],
   "transactions": [
@@ -26,12 +29,18 @@
       "total": 1449
     }
   ],
-  "cash": 451,
+  "cash": 351,
   "total_cost": 1449,
   "total_value": 1381,
   "total_pnl": -68,
   "total_pnl_pct": -4.69,
-  "updated_at": "2026-06-23T17:00:00",
-  "status": "亏损中",
-  "action": "明天开盘观察，跌破13.80止损"
+  "updated_at": "2026-06-23T18:00:00",
+  "strategy": {
+    "style": "激进偏保守",
+    "risk_tolerance": "中等",
+    "max_single_position": 0.4,
+    "stop_loss_pct": 0.05,
+    "take_profit_pct": 0.10,
+    "learning_phase": "认知奠基期"
+  }
 }
