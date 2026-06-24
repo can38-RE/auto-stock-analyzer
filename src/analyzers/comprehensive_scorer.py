@@ -16,6 +16,83 @@ WEIGHTS = {
 }
 
 
+def _calculate_holding_recommendation(change_1d, change_5d, change_10d, turnover, roe, price):
+    """Calculate holding recommendation based on multiple factors.
+    
+    Factors:
+    1. Momentum (short/medium/long term)
+    2. Volatility (turnover as proxy)
+    3. Fundamental strength (ROE)
+    4. Price level
+    """
+    # Base holding days based on momentum
+    if change_5d > 15:
+        base_days = 1
+        strategy = "超短线"
+        reason = "涨幅过大，及时止盈"
+    elif change_5d > 10:
+        base_days = 2
+        strategy = "短线"
+        reason = "强势股，跟随趋势"
+    elif change_5d > 5:
+        base_days = 3
+        strategy = "短波段"
+        reason = "上涨趋势，持有待涨"
+    elif change_5d > 0:
+        base_days = 5
+        strategy = "波段"
+        reason = "温和上涨，耐心持有"
+    else:
+        base_days = 0
+        strategy = "观望"
+        reason = "下跌趋势，不建议买入"
+    
+    # Adjust based on turnover (high turnover = more volatile = shorter holding)
+    if turnover > 15:
+        base_days = max(1, base_days - 2)
+        reason += "，换手率高需谨慎"
+    elif turnover > 10:
+        base_days = max(1, base_days - 1)
+    
+    # Adjust based on ROE (strong fundamentals = can hold longer)
+    if roe and roe > 15:
+        base_days += 1
+        reason += "，基本面优秀可延长"
+    
+    # Adjust based on price level
+    if price < 10:
+        base_days += 1
+        reason += "，低价股弹性大"
+    
+    # Generate sell signals
+    sell_signals = []
+    if change_1d > 5:
+        sell_signals.append("当日涨幅超5%，考虑止盈")
+    if change_5d > 15:
+        sell_signals.append("5日涨幅超15%，高位减仓")
+    sell_signals.append(f"跌破买入价{max(5, abs(change_5d)):.0f}%止损")
+    sell_signals.append("连续2天阴线考虑卖出")
+    
+    # Format holding period
+    if base_days <= 0:
+        period = "不建议买入"
+    elif base_days == 1:
+        period = "T+1次日卖出"
+    elif base_days <= 3:
+        period = f"{base_days}天（{strategy}）"
+    else:
+        period = f"{base_days-2}-{base_days}天（{strategy}）"
+    
+    return {
+        "period": period,
+        "min_days": max(1, base_days - 2),
+        "max_days": base_days,
+        "strategy": strategy,
+        "reason": reason,
+        "sell_signals": sell_signals[:3]
+    }
+
+
 def get_comprehensive_top_stocks(budget: float = 1800, top_n: int = 10) -> List[Dict[str, Any]]:
     """Get top stocks with comprehensive scoring."""
     bs.login()
@@ -184,15 +261,10 @@ def get_comprehensive_top_stocks(budget: float = 1800, top_n: int = 10) -> List[
                 metaphysics_score * WEIGHTS["metaphysics"] / 100
             )
             
-            # Determine holding period
-            if change_5d > 10:
-                holding = "1-2天（短线）"
-            elif change_5d > 5:
-                holding = "2-3天（短线）"
-            elif change_5d > 0:
-                holding = "3-5天（波段）"
-            else:
-                holding = "观望为主"
+            # Determine holding period based on multiple factors
+            holding = self._calculate_holding_recommendation(
+                change_1d, change_5d, change_10d, turn, roe, price
+            )
             
             # Determine risk level
             if change_5d > 15:
@@ -267,10 +339,15 @@ def format_top_stocks_report(stocks: List[Dict[str, Any]], budget: float = 1800)
             f"    价格位(10%): {s['price_score']}",
             f"    玄学(5%): {s['metaphysics_score']}",
             "",
-            f"  建议持仓: {s['holding']}",
+            f"  建议持仓: {s['holding']['period']}",
+            f"  持仓策略: {s['holding']['reason']}",
             f"  风险等级: {s['risk']}",
-            ""
+            f"  卖出信号:",
+            "",
         ])
+        for signal in s['holding']['sell_signals']:
+            lines.append(f"    - {signal}")
+        lines.append("")
     
     return "\n".join(lines)
 

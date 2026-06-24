@@ -578,7 +578,10 @@ class HTMLReportGenerator:
                                 {{ "%.1f"|format(stock.total_score) }}
                             </span>
                         </td>
-                        <td style="padding: 10px; text-align: center;">{{ stock.holding }}</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <strong>{{ stock.holding.period }}</strong><br>
+                            <small>{{ stock.holding.strategy }}</small>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -596,6 +599,16 @@ class HTMLReportGenerator:
                         <span>流动性: {{ stock.volume_score }}</span>
                         <span>价格位: {{ stock.price_score }}</span>
                         <span>玄学: {{ stock.metaphysics_score }}</span>
+                    </div>
+                    <div style="margin-top: 10px; padding: 10px; background: #e3f2fd; border-radius: 5px;">
+                        <strong>持仓建议:</strong> {{ stock.holding.period }}<br>
+                        <strong>策略:</strong> {{ stock.holding.reason }}<br>
+                        <strong>卖出信号:</strong>
+                        <ul style="margin: 5px 0; padding-left: 20px;">
+                            {% for signal in stock.holding.sell_signals %}
+                            <li>{{ signal }}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
                 {% endfor %}
@@ -652,7 +665,21 @@ class HTMLReportGenerator:
                     <li>
                         <strong>{{ pos.name }}</strong> ({{ pos.code }})<br>
                         价格: ¥{{ "%.2f"|format(pos.price) }} × 100股 = ¥{{ "%.0f"|format(pos.cost) }}<br>
-                        涨跌: {{ "%+.2f"|format(pos.change) }}% | 评分: {{ pos.score }}
+                        涨跌: {{ "%+.2f"|format(pos.change) }}% | 评分: {{ pos.score }}<br>
+                        <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                            <strong>持仓建议:</strong> 
+                            {% if pos.change > 5 %}
+                                1-2天（短线），涨幅较大及时止盈
+                            {% elif pos.change > 2 %}
+                                2-3天（短波段），跟随趋势
+                            {% elif pos.change > 0 %}
+                                3-5天（波段），耐心持有
+                            {% else %}
+                                观望为主，等待企稳
+                            {% endif %}<br>
+                            <strong>止损位:</strong> ¥{{ "%.2f"|format(pos.price * 0.95) }} (-5%)<br>
+                            <strong>止盈位:</strong> ¥{{ "%.2f"|format(pos.price * 1.10) }} (+10%)
+                        </div>
                     </li>
                     {% endfor %}
                 </ul>
