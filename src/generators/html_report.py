@@ -672,15 +672,17 @@ class HTMLReportGenerator:
                     
                     <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 15px;">
                         <h4 style="color: #1565c0; margin-bottom: 10px;">持仓时间建议</h4>
-                        <p><strong>建议持仓:</strong> {{ stock.holding.period }}</p>
-                        <p><strong>操作策略:</strong> {{ stock.holding.strategy }}</p>
-                        <p><strong>波动率:</strong> {{ stock.holding.volatility }}%</p>
+                        <p><strong>建议持仓:</strong> {{ stock.holding.period|default('1-3天') }}</p>
+                        <p><strong>操作策略:</strong> {{ stock.holding.strategy|default('根据走势决定') }}</p>
+                        <p><strong>波动率:</strong> {{ stock.holding.volatility|default(0) }}%</p>
+                        {% if stock.holding.sell_signals is defined and stock.holding.sell_signals %}
                         <p style="margin-top: 10px;"><strong>卖出信号:</strong></p>
                         <ul style="margin: 5px 0; padding-left: 20px;">
                             {% for signal in stock.holding.sell_signals[:3] %}
                             <li>{{ signal }}</li>
                             {% endfor %}
                         </ul>
+                        {% endif %}
                     </div>
                     
                     <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px;">
