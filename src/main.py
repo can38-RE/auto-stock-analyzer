@@ -43,9 +43,15 @@ def setup_logging():
 
 
 def get_session_type() -> str:
-    """Determine if this is morning or afternoon session."""
-    hour = datetime.now().hour
-    if hour < 12:
+    """Determine if this is morning or afternoon session (Beijing time UTC+8)."""
+    # GitHub Actions runs on UTC, convert to Beijing time
+    utc_now = datetime.utcnow()
+    beijing_hour = (utc_now.hour + 8) % 24
+    weekday = utc_now.weekday()  # 0=Monday, 6=Sunday
+    
+    if weekday >= 5:  # Weekend
+        return "weekend"
+    elif beijing_hour < 12:
         return "morning"
     else:
         return "afternoon"
@@ -182,7 +188,12 @@ def run_daily_analysis():
         
         # Add session info, screener results, portfolio, and metaphysics to analysis
         analysis_results['session'] = session
-        analysis_results['session_label'] = "早盘" if session == "morning" else "午盘"
+        if session == "morning":
+            analysis_results['session_label'] = "早盘"
+        elif session == "afternoon":
+            analysis_results['session_label'] = "午盘"
+        else:
+            analysis_results['session_label'] = "周末预测"
         analysis_results['mainboard_stocks'] = screened_stocks
         analysis_results['buy_plan'] = buy_plan
         analysis_results['trend_analysis'] = trend_results

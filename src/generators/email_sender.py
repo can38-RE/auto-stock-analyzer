@@ -38,15 +38,15 @@ class EmailSender:
             True if successful, False otherwise
         """
         try:
-            # Determine session based on time and day
-            now = datetime.now()
-            hour = now.hour
+            # Determine session based on Beijing time (UTC+8)
+            now = datetime.utcnow()  # GitHub Actions uses UTC
+            beijing_hour = (now.hour + 8) % 24  # Convert to Beijing time
             weekday = now.weekday()  # 0=Monday, 6=Sunday
             
             if weekday >= 5:  # Weekend
                 session = "周末预测"
                 emoji = "📅"
-            elif hour < 12:
+            elif beijing_hour < 12:
                 session = "早盘"
                 emoji = "🌅"
             else:
