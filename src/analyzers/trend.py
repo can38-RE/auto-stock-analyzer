@@ -83,8 +83,107 @@ class TrendAnalyzer:
             'support_resistance': support_resistance,
             'entry_prices': entry_prices,
             'strategy': strategy,
+            'holding': strategy.get('holding', {}),
             'recent_prices': prices[-5:],  # Last 5 days
         }
+    
+    def _calculate_volatility(self, prices: List[Dict]) -> float:
+        """Calculate price volatility (standard deviation of returns)."""
+        if len(prices) < 10:
+            return 0.0
+        
+        closes = [p['close'] for p in prices]
+        returns = [(closes[i] - closes[i-1]) / closes[i-1] for i in range(1, len(closes))]
+        
+        if not returns:
+            return 0.0
+        
+        mean_ret = sum(returns) / len(returns)
+        variance = sum((r - mean_ret) ** 2 for r in returns) / len(returns)
+        volatility = variance ** 0.5 * 100  # Convert to percentage
+        
+        return round(volatility, 2)
+    
+    def _calculate_holding_recommendation(self, trend: str, volatility: float) -> Dict[str, Any]:
+        """Calculate recommended holding period based on trend and volatility."""
+        
+        # Base holding periods
+        if trend in ['strong_uptrend']:
+            period = '3-5天'
+            min_days = 3
+            max_days = 5
+            strategy = '趋势跟踪，等待拐点卖出'
+        elif trend in ['uptrend']:
+            period = '2-4天'
+            min_days = 2
+            max_days = 4
+            strategy = '持有至涨势放缓'
+        elif trend in ['weak_uptrend']:
+            period = '1-3天'
+            min_days = 1
+            max_days = 3
+            strategy = '短线操作，见好就收'
+        elif trend in ['consolidation']:
+            period = '1-2天'
+            min_days = 1
+            max_days = 2
+            strategy = '震荡行情，快进快出'
+        elif trend in ['weak_downtrend']:
+            period = '1天（T+1）'
+            min_days = 1
+            max_days = 1
+            strategy = '次日反弹即卖，不恋战'
+        else:  # downtrend, strong_downtrend
+            period = '不建议买入'
+            min_days = 0
+            max_days = 0
+            strategy = '下跌趋势，回避'
+        
+        # Adjust for volatility
+        if volatility > 4:
+            # High volatility - shorter holding
+            max_days = max(1, max_days - 1)
+            period = f'{min_days}-{max_days}天（高波动缩短）'
+            strategy += '，波动大注意止损'
+        elif volatility < 2:
+            # Low volatility - can hold longer
+            max_days += 1
+            period = f'{min_days}-{max_days}天（低波动可延长）'
+        
+        return {
+            'period': period,
+            'min_days': min_days,
+            'max_days': max_days,
+            'strategy': strategy,
+            'volatility': volatility,
+            'sell_signals': self._get_sell_signals(trend)
+        }
+    
+    def _get_sell_signals(self, trend: str) -> List[str]:
+        """Get sell signals based on trend."""
+        base_signals = [
+            '跌破止损位（-7%）立即卖出',
+            '达到止盈目标（+10%）考虑减仓',
+            '连续2天阴线且跌破5日均线',
+        ]
+        
+        if trend in ['strong_uptrend', 'uptrend']:
+            base_signals.extend([
+                '高位放量滞涨时卖出',
+                '跌破10日均线止盈',
+            ])
+        elif trend in ['weak_uptrend', 'consolidation']:
+            base_signals.extend([
+                '冲高回落时及时止盈',
+                '尾盘拉升可能是诱多，谨慎持有',
+            ])
+        elif trend in ['weak_downtrend', 'downtrend']:
+            base_signals.extend([
+                '次日开盘反弹立即卖出',
+                '不要期望回本，止损第一',
+            ])
+        
+        return base_signals
     
     def _identify_trend(self, prices: List[Dict]) -> Dict[str, Any]:
         """Identify current trend."""
@@ -182,6 +281,10 @@ class TrendAnalyzer:
         sr = self._calculate_support_resistance(prices)
         entry = self._calculate_entry_prices(prices, current)
         
+        # Calculate holding recommendation based on trend and volatility
+        volatility = self._calculate_volatility(prices)
+        holding = self._calculate_holding_recommendation(direction, volatility)
+        
         if direction in ['strong_uptrend', 'uptrend']:
             return {
                 'type': '追涨策略',
@@ -190,11 +293,13 @@ class TrendAnalyzer:
                 'entry_price': entry['aggressive'],
                 'reason': '趋势向上，可追涨',
                 'risk_level': '中等',
+                'holding': holding,
                 'tips': [
                     '可在当前价位直接买入',
                     '若回调到5日均线附近加仓',
                     f'止损位: {entry["stop_loss"]}元 (-7%)',
                     f'第一止盈: {entry["take_profit_1"]}元 (+10%)',
+                    f'建议持仓: {holding["period"]}',
                     '注意：T+1规则，今天买明天才能卖',
                 ]
             }

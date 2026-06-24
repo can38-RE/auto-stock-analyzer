@@ -612,6 +612,7 @@ class HTMLReportGenerator:
                         <th style="padding: 12px; text-align: right;">入场价</th>
                         <th style="padding: 12px; text-align: right;">止损</th>
                         <th style="padding: 12px; text-align: right;">止盈</th>
+                        <th style="padding: 12px; text-align: center;">建议持仓</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -635,6 +636,9 @@ class HTMLReportGenerator:
                         </td>
                         <td style="padding: 10px; text-align: right; color: #27ae60;">
                             ¥{{ "%.2f"|format(stock.entry_prices.take_profit_1) }}
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            <strong>{{ stock.holding.period }}</strong>
                         </td>
                     </tr>
                     {% endfor %}
@@ -666,10 +670,23 @@ class HTMLReportGenerator:
                     <p><strong>入场价:</strong> ¥{{ "%.2f"|format(stock.strategy.entry_price) }}</p>
                     <p><strong>风险等级:</strong> {{ stock.strategy.risk_level }}</p>
                     
-                    <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px;">
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                        <h4 style="color: #1565c0; margin-bottom: 10px;">持仓时间建议</h4>
+                        <p><strong>建议持仓:</strong> {{ stock.holding.period }}</p>
+                        <p><strong>操作策略:</strong> {{ stock.holding.strategy }}</p>
+                        <p><strong>波动率:</strong> {{ stock.holding.volatility }}%</p>
+                        <p style="margin-top: 10px;"><strong>卖出信号:</strong></p>
+                        <ul style="margin: 5px 0; padding-left: 20px;">
+                            {% for signal in stock.holding.sell_signals[:3] %}
+                            <li>{{ signal }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px;">
                         <div style="flex: 1; min-width: 120px;">
                             <p><strong>激进入场:</strong> ¥{{ "%.2f"|format(stock.entry_prices.aggressive) }}</p>
-                            <p><strong>稳��入场:</strong> ¥{{ "%.2f"|format(stock.entry_prices.moderate) }}</p>
+                            <p><strong>稳健入场:</strong> ¥{{ "%.2f"|format(stock.entry_prices.moderate) }}</p>
                         </div>
                         <div style="flex: 1; min-width: 120px;">
                             <p><strong>止损:</strong> ¥{{ "%.2f"|format(stock.entry_prices.stop_loss) }} (-7%)</p>
