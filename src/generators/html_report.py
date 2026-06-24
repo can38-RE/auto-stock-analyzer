@@ -245,7 +245,11 @@ class HTMLReportGenerator:
         
         <section class="section">
             <h2>风险评估</h2>
-            <p><strong>风险等级:</strong> <span class="risk-badge risk-{{ risk_level.level }}">{{ risk_level.level }}</span></p>
+            <p><strong>风险等级:</strong> 
+                <span class="risk-badge risk-{{ risk_level.level }}">
+                    {% if risk_level.level == 'high' %}高风险{% elif risk_level.level == 'medium' %}中等风险{% else %}低风险{% endif %}
+                </span>
+            </p>
             <p><strong>风险评分:</strong> {{ risk_level.score }}/10</p>
             {% if risk_level.factors %}
             <p><strong>风险因素:</strong> {{ risk_level.factors|join(', ') }}</p>
@@ -387,7 +391,9 @@ class HTMLReportGenerator:
                     <div class="details">
                         <p>现价: ¥{{ rec.price }} | 涨跌: {{ '%+.2f'|format(rec.change) }}%</p>
                         <p>建议操作: <strong>{{ rec.action }}</strong></p>
-                        <p>风险等级: <span class="risk-badge risk-{{ rec.risk }}">{{ rec.risk }}</span></p>
+                        <p>风险等级: <span class="risk-badge risk-{{ rec.risk }}">
+                            {% if rec.risk == 'low' %}低风险{% elif rec.risk == 'medium' %}中等风险{% elif rec.risk == 'high' %}高风险{% else %}{{ rec.risk }}{% endif %}
+                        </span></p>
                         <p>预期收益: {{ rec.expected_return }}</p>
                         <p>{{ rec.reason }}</p>
                     </div>
@@ -668,7 +674,9 @@ class HTMLReportGenerator:
                     <h4 style="color: #667eea;">{{ stock.strategy.type }}</h4>
                     <p><strong>建议动作:</strong> {{ stock.strategy.action }}</p>
                     <p><strong>入场价:</strong> ¥{{ "%.2f"|format(stock.strategy.entry_price) }}</p>
-                    <p><strong>风险等级:</strong> {{ stock.strategy.risk_level }}</p>
+                    <p><strong>风险等级:</strong> 
+                        {% if stock.strategy.risk_level == 'low' %}低风险{% elif stock.strategy.risk_level == 'medium' %}中等风险{% elif stock.strategy.risk_level == 'high' %}高风险{% else %}{{ stock.strategy.risk_level }}{% endif %}
+                    </p>
                     
                     <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 15px;">
                         <h4 style="color: #1565c0; margin-bottom: 10px;">持仓时间建议</h4>
