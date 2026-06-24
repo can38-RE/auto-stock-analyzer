@@ -14,6 +14,7 @@ from src.collectors.policy_monitor import PolicyMonitor
 from src.collectors.research_paper import ResearchPaperCollector
 from src.collectors.company_report import CompanyReportCollector
 from src.collectors.mainboard_screener import MainboardScreener
+from src.collectors.financial_enricher import FinancialEnricher
 from src.collectors.full_market_scanner import FullMarketScanner
 from src.analyzers.strategy import StrategyAnalyzer
 from src.analyzers.trend import TrendAnalyzer
@@ -121,10 +122,16 @@ def run_daily_analysis():
         # Convert to dict format for other analyzers
         scanned_dict = screened_stocks
         
+        # Step 1.85: Enrich stock data with financial metrics
+        logger.info("Step 1.85: Enriching stock data with financial metrics...")
+        enricher = FinancialEnricher()
+        enriched_stocks = enricher.enrich_stocks(scanned_dict[:20], max_stocks=20)
+        logger.info(f"Enriched {len(enriched_stocks)} stocks with financial data")
+        
         # Step 1.9: Expert strategy analysis
         logger.info("Step 1.9: Running expert strategy analysis...")
         expert_analyzer = ExpertStrategyAnalyzer()
-        expert_results = expert_analyzer.analyze_multiple(scanned_dict[:15], top_n=10)
+        expert_results = expert_analyzer.analyze_multiple(enriched_stocks[:15], top_n=10)
         logger.info(f"Expert analysis: {len(expert_results)} stocks analyzed")
 
         # Step 1.10: Policy analysis
