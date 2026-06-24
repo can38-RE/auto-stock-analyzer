@@ -1,20 +1,23 @@
-"""Comprehensive stock scoring - combines all analysis dimensions."""
+"""Comprehensive stock scoring with proper weights."""
 
 import baostock as bs
 from typing import List, Dict, Any
 from loguru import logger
 
 
-def get_comprehensive_top_stocks(budget: float = 1800, top_n: int = 5) -> List[Dict[str, Any]]:
-    """Get top stocks with comprehensive scoring.
-    
-    Scoring weights:
-    - Technical (trend, momentum): 35%
-    - Fundamental (PE, ROE, margins): 25%
-    - Policy alignment: 15%
-    - Volume/liquidity: 15%
-    - Price position: 10%
-    """
+# Scoring weights (must sum to 100)
+WEIGHTS = {
+    "technical": 25,    # Technical analysis (trend, momentum)
+    "fundamental": 25,  # Fundamental analysis (ROE, margins, PE)
+    "policy": 20,       # Policy alignment
+    "volume": 15,       # Volume and liquidity
+    "price": 10,        # Price position
+    "metaphysics": 5,   # Metaphysics (smallest weight)
+}
+
+
+def get_comprehensive_top_stocks(budget: float = 1800, top_n: int = 10) -> List[Dict[str, Any]]:
+    """Get top stocks with comprehensive scoring."""
     bs.login()
     
     # Target codes - mainboard stocks under 19 RMB
@@ -53,9 +56,9 @@ def get_comprehensive_top_stocks(budget: float = 1800, top_n: int = 5) -> List[D
         'sh.600088', 'sh.600089', 'sh.600090',
     ]
     
-    # Policy-aligned sectors (high priority)
+    # Policy-aligned sectors
     policy_sectors = {
-        "新能源": ["光伏", "风电", "储能", "锂电", "新能源"],
+        "新能源": ["光伏", "风电", "储能", "锂电", "新能源", "阳光"],
         "人工智能": ["AI", "智能", "科技", "信息", "数据"],
         "半导体": ["芯片", "半导体", "电子", "集成电路"],
         "新材料": ["新材", "材料", "化工"],
@@ -98,39 +101,41 @@ def get_comprehensive_top_stocks(budget: float = 1800, top_n: int = 5) -> List[D
             while (rs2.error_code == '0') and rs2.next():
                 name = rs2.get_row_data()[1]
             
-            # Calculate technical score (35%)
+            # Calculate technical score (25%)
             closes = [float(d[1]) for d in data if d[1]]
             change_1d = ((closes[-1] - closes[-2]) / closes[-2] * 100) if len(closes) >= 2 else 0
             change_5d = ((closes[-1] - closes[-5]) / closes[-5] * 100) if len(closes) >= 5 else 0
             change_10d = ((closes[-1] - closes[-10]) / closes[-10] * 100) if len(closes) >= 10 else 0
             
             technical_score = 0
-            if change_1d > 3: technical_score += 15
-            elif change_1d > 1: technical_score += 10
-            elif change_1d > 0: technical_score += 5
+            if change_1d > 3: technical_score += 30
+            elif change_1d > 1: technical_score += 20
+            elif change_1d > 0: technical_score += 10
             
-            if change_5d > 10: technical_score += 20
-            elif change_5d > 5: technical_score += 15
-            elif change_5d > 0: technical_score += 10
+            if change_5d > 10: technical_score += 40
+            elif change_5d > 5: technical_score += 30
+            elif change_5d > 0: technical_score += 20
             
-            if change_10d > 15: technical_score += 15
-            elif change_10d > 8: technical_score += 10
-            elif change_10d > 0: technical_score += 5
+            if change_10d > 15: technical_score += 30
+            elif change_10d > 8: technical_score += 20
+            elif change_10d > 0: technical_score += 10
             
             technical_score = min(technical_score, 100)
             
             # Calculate fundamental score (25%)
-            fundamental_score = 50  # Base
+            fundamental_score = 50
             
-            # Try to get PE from baostock
-            rs3 = bs.query_profit_data(code=code, year=2024, quarter=4)
             roe = 0
             gp_margin = 0
-            while rs3.next():
-                row = rs3.get_row_data()
-                if row and len(row) > 5:
-                    roe = float(row[3]) * 100 if row[3] else 0
-                    gp_margin = float(row[5]) * 100 if row[5] else 0
+            try:
+                rs3 = bs.query_profit_data(code=code, year=2024, quarter=4)
+                while rs3.next():
+                    row = rs3.get_row_data()
+                    if row and len(row) > 5:
+                        roe = float(row[3]) * 100 if row[3] else 0
+                        gp_margin = float(row[5]) * 100 if row[5] else 0
+            except:
+                pass
             
             if roe > 15: fundamental_score += 25
             elif roe > 10: fundamental_score += 15
@@ -142,7 +147,7 @@ def get_comprehensive_top_stocks(budget: float = 1800, top_n: int = 5) -> List[D
             
             fundamental_score = min(fundamental_score, 100)
             
-            # Calculate policy score (15%)
+            # Calculate policy score (20%)
             policy_score = 50
             for sector, keywords in policy_sectors.items():
                 if any(kw in name for kw in keywords):
@@ -161,13 +166,22 @@ def get_comprehensive_top_stocks(budget: float = 1800, top_n: int = 5) -> List[D
             elif 5 <= price < 10: price_score = 70
             elif 15 < price <= 19: price_score = 60
             
+            # Calculate metaphysics score (5%) - based on stock code
+            metaphysics_score = 50
+            last_digits = code[-3:]
+            if '8' in last_digits or '6' in last_digits:
+                metaphysics_score = 70  # Lucky numbers
+            elif '4' in last_digits:
+                metaphysics_score = 30  # Unlucky number
+            
             # Weighted total score
             total_score = (
-                technical_score * 0.35 +
-                fundamental_score * 0.25 +
-                policy_score * 0.15 +
-                volume_score * 0.15 +
-                price_score * 0.10
+                technical_score * WEIGHTS["technical"] / 100 +
+                fundamental_score * WEIGHTS["fundamental"] / 100 +
+                policy_score * WEIGHTS["policy"] / 100 +
+                volume_score * WEIGHTS["volume"] / 100 +
+                price_score * WEIGHTS["price"] / 100 +
+                metaphysics_score * WEIGHTS["metaphysics"] / 100
             )
             
             # Determine holding period
@@ -204,6 +218,7 @@ def get_comprehensive_top_stocks(budget: float = 1800, top_n: int = 5) -> List[D
                 'policy_score': round(policy_score, 1),
                 'volume_score': round(volume_score, 1),
                 'price_score': round(price_score, 1),
+                'metaphysics_score': round(metaphysics_score, 1),
                 'total_score': round(total_score, 1),
                 'holding': holding,
                 'risk': risk,
@@ -226,9 +241,13 @@ def format_top_stocks_report(stocks: List[Dict[str, Any]], budget: float = 1800)
     """Format top stocks as readable report."""
     lines = [
         "=" * 70,
-        "综合评分TOP推荐 - 激进偏保守策略",
+        "综合评分TOP10 - 激进偏保守策略",
         f"预算: {budget}元 | 券商: 金元证券",
         "=" * 70,
+        "",
+        "评分权重:",
+        "  技术面: 25% | 基本面: 25% | 政策面: 20%",
+        "  流动性: 15% | 价格位: 10% | 玄学: 5%",
         "",
     ]
     
@@ -241,35 +260,21 @@ def format_top_stocks_report(stocks: List[Dict[str, Any]], budget: float = 1800)
             f"  ROE: {s['roe']}% | 毛利率: {s['gp_margin']}%",
             "",
             f"  综合评分: {s['total_score']}/100",
-            f"    技术面(35%): {s['technical_score']}",
+            f"    技术面(25%): {s['technical_score']}",
             f"    基本面(25%): {s['fundamental_score']}",
-            f"    政策面(15%): {s['policy_score']}",
+            f"    政策面(20%): {s['policy_score']}",
             f"    流动性(15%): {s['volume_score']}",
             f"    价格位(10%): {s['price_score']}",
+            f"    玄学(5%): {s['metaphysics_score']}",
             "",
             f"  建议持仓: {s['holding']}",
             f"  风险等级: {s['risk']}",
             ""
         ])
     
-    # Buy plan
-    lines.extend([
-        "=" * 70,
-        "买入方案 (1800元预算)",
-        "=" * 70,
-    ])
-    
-    remaining = budget
-    for i, s in enumerate(stocks[:2], 1):
-        if s['cost_100'] <= remaining:
-            lines.append(f"  {i}. {s['name']} - 1手({s['cost_100']}元)")
-            remaining -= s['cost_100']
-    
-    lines.append(f"  剩余: {remaining}元")
-    
     return "\n".join(lines)
 
 
 if __name__ == "__main__":
-    stocks = get_comprehensive_top_stocks(budget=1800, top_n=5)
+    stocks = get_comprehensive_top_stocks(budget=1800, top_n=10)
     print(format_top_stocks_report(stocks, budget=1800))

@@ -543,6 +543,66 @@ class HTMLReportGenerator:
         {% endif %}
         
         {% if mainboard_stocks %}
+        {% if top_stocks %}
+        <section class="section">
+            <h2>综合评分TOP10</h2>
+            <p>评分权重: 技术面25% | 基本面25% | 政策面20% | 流动性15% | 价格位10% | 玄学5%</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <thead>
+                    <tr style="background: #667eea; color: white;">
+                        <th style="padding: 12px; text-align: center;">排名</th>
+                        <th style="padding: 12px; text-align: left;">股票</th>
+                        <th style="padding: 12px; text-align: right;">价格</th>
+                        <th style="padding: 12px; text-align: right;">1手成本</th>
+                        <th style="padding: 12px; text-align: right;">5日涨幅</th>
+                        <th style="padding: 12px; text-align: center;">综合评分</th>
+                        <th style="padding: 12px; text-align: center;">建议持仓</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in top_stocks %}
+                    <tr style="border-bottom: 1px solid #eee; background: {{ '#e8f5e9' if loop.index <= 3 else '#fff' }};">
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">{{ loop.index }}</td>
+                        <td style="padding: 10px;">
+                            <strong>{{ stock.name }}</strong><br>
+                            <small>{{ stock.code }}</small>
+                        </td>
+                        <td style="padding: 10px; text-align: right;">¥{{ "%.2f"|format(stock.price) }}</td>
+                        <td style="padding: 10px; text-align: right;">¥{{ "%.0f"|format(stock.cost_100) }}</td>
+                        <td style="padding: 10px; text-align: right; color: {{ '#e74c3c' if stock.change_5d > 0 else '#27ae60' }};">
+                            {{ "%+.2f"|format(stock.change_5d) }}%
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span style="background: {{ '#27ae60' if stock.total_score >= 70 else '#f39c12' if stock.total_score >= 60 else '#e74c3c' }}; color: white; padding: 5px 10px; border-radius: 15px; font-weight: bold;">
+                                {{ "%.1f"|format(stock.total_score) }}
+                            </span>
+                        </td>
+                        <td style="padding: 10px; text-align: center;">{{ stock.holding }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <h4>评分维度详情</h4>
+                {% for stock in top_stocks[:3] %}
+                <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 5px;">
+                    <strong>{{ stock.name }} ({{ stock.code }})</strong>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px;">
+                        <span>技术面: {{ stock.technical_score }}</span>
+                        <span>基本面: {{ stock.fundamental_score }}</span>
+                        <span>政策面: {{ stock.policy_score }}</span>
+                        <span>流动性: {{ stock.volume_score }}</span>
+                        <span>价格位: {{ stock.price_score }}</span>
+                        <span>玄学: {{ stock.metaphysics_score }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+        
         <section class="section">
             <h2>主板股票筛选 (激进策略)</h2>
             <p>筛选条件: 主板 | 价格5-19元 | 高动量 | 适合小资金</p>

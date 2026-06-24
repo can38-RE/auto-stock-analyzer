@@ -223,10 +223,32 @@ class StrategyAnalyzer:
     
     def _analyze_sectors(self, stock_list: List[Dict]) -> Dict[str, Any]:
         """Analyze sector performance."""
+        # Map stocks to sectors based on name keywords
+        sector_keywords = {
+            "白酒": ["茅台", "五粮液", "泸州", "汾酒", "洋河"],
+            "银行": ["银行", "工商", "建设", "农业", "中国银行"],
+            "新能源": ["比亚迪", "宁德", "阳光", "隆基", "通威"],
+            "半导体": ["中芯", "韦尔", "北方华创", "兆易", "卓胜微"],
+            "医药": ["恒瑞", "药明", "迈瑞", "片仔癀", "云南白药"],
+            "科技": ["海康", "大华", "立讯", "歌尔"],
+            "地产": ["万科", "保利", "招商蛇口", "金地"],
+            "消费": ["伊利", "海天", "美的", "格力", "海尔"],
+            "证券": ["中信", "华泰", "国泰", "招商证券"],
+            "有色": ["紫金", "洛阳钼业", "北方稀土", "天齐"],
+        }
+        
         sectors = {}
         
         for stock in stock_list:
-            sector = stock.get('sector', '未知')
+            name = stock.get('name', '')
+            sector = "其他"
+            
+            # Try to match sector by name keywords
+            for sector_name, keywords in sector_keywords.items():
+                if any(kw in name for kw in keywords):
+                    sector = sector_name
+                    break
+            
             if sector not in sectors:
                 sectors[sector] = {
                     'stocks': [],

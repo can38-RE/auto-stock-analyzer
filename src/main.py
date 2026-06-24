@@ -23,6 +23,7 @@ from src.analyzers.metaphysics import MetaphysicsAnalyzer
 from src.analyzers.expert_strategies import ExpertStrategyAnalyzer
 from src.analyzers.policy_analysis import PolicyAnalyzer
 from src.analyzers.international import InternationalAnalyzer
+from src.analyzers.comprehensive_scorer import get_comprehensive_top_stocks
 from src.generators.html_report import HTMLReportGenerator
 from src.generators.email_sender import send_daily_report
 
@@ -172,6 +173,11 @@ def run_daily_analysis():
 
         logger.info(f"Metaphysics analysis: Day score {day_fortune['fortune_score']}, {len(metaphysics_results)} stocks analyzed")
 
+        # Step 1.13: Comprehensive scoring (TOP10)
+        logger.info("Step 1.13: Running comprehensive scoring...")
+        top_stocks = get_comprehensive_top_stocks(budget=budget, top_n=10)
+        logger.info(f"Comprehensive scoring: {len(top_stocks)} top stocks")
+
         # Step 2: Analyze data
         logger.info("Step 2: Analyzing data...")
         strategy_analyzer = StrategyAnalyzer()
@@ -200,6 +206,7 @@ def run_daily_analysis():
         analysis_results['portfolio'] = portfolio_summary
         analysis_results['metaphysics'] = day_fortune
         analysis_results['metaphysics_stocks'] = metaphysics_results
+        analysis_results['top_stocks'] = top_stocks
 
         # Add new analysis modules
         analysis_results['mainboard_stocks'] = scanned_dict[:20]
