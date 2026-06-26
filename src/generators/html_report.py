@@ -247,12 +247,17 @@ class HTMLReportGenerator:
             <h2>风险评估</h2>
             <p><strong>风险等级:</strong> 
                 <span class="risk-badge risk-{{ risk_level.level }}">
-                    {% if risk_level.level == 'high' %}高风险{% elif risk_level.level == 'medium' %}中等风险{% else %}低风险{% endif %}
+                    {% if risk_level.level == 'high' %}高风险{% elif risk_level.level == 'medium' %}中等风险{% elif risk_level.level == 'low' %}低风险{% else %}中等风险{% endif %}
                 </span>
             </p>
-            <p><strong>风险评分:</strong> {{ risk_level.score }}/10</p>
+            <p><strong>风险评分:</strong> {{ risk_level.score|default(5) }}/10</p>
             {% if risk_level.factors %}
-            <p><strong>风险因素:</strong> {{ risk_level.factors|join(', ') }}</p>
+            <p><strong>风险因素:</strong></p>
+            <ul>
+                {% for factor in risk_level.factors %}
+                <li>{{ factor }}</li>
+                {% endfor %}
+            </ul>
             {% endif %}
         </section>
         
@@ -872,7 +877,7 @@ class HTMLReportGenerator:
             <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
                 {% for hotspot in policy_hotspots[:5] %}
                 <span style="background: #ff9800; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9em;">
-                    {{ hotspot }}
+                    {{ hotspot.name|default(hotspot) }}
                 </span>
                 {% endfor %}
             </div>
