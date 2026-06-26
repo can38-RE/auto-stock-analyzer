@@ -27,9 +27,16 @@ class MainboardScreener:
             self._logged_in = False
     
     def screen_stocks(self, budget: float = 1900, max_price: float = 19.0, 
-                      min_price: float = 5.0, top_n: int = 15) -> List[Dict[str, Any]]:
+                      min_price: float = 5.0, top_n: int = 20) -> List[Dict[str, Any]]:
         """Screen mainboard stocks using targeted code list."""
         self._login()
+        
+        # Use dynamic dates - get last 10 trading days
+        today = datetime.now()
+        end_date = today.strftime("%Y-%m-%d")
+        start_date = (today - timedelta(days=14)).strftime("%Y-%m-%d")
+        
+        logger.info(f"Fetching data from {start_date} to {end_date}")
         
         # Pre-selected cheap mainboard codes (known to be under 19 RMB)
         stock_codes = [
@@ -81,7 +88,7 @@ class MainboardScreener:
             try:
                 rs = bs.query_history_k_data_plus(
                     code, 'date,close,volume,turn',
-                    start_date='2026-06-16', end_date='2026-06-22',
+                    start_date=start_date, end_date=end_date,
                     frequency='d', adjustflag='3'
                 )
                 

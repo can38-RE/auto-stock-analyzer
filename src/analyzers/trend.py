@@ -8,6 +8,7 @@ Analyzes recent price trends and provides:
 
 import baostock as bs
 from typing import List, Dict, Any, Tuple
+from datetime import datetime, timedelta
 from loguru import logger
 
 
@@ -36,12 +37,17 @@ class TrendAnalyzer:
         else:
             bs_code = f'sz.{code}'
         
-        # Get 20 days of data
+        # Use dynamic dates - get last 30 days
+        today = datetime.now()
+        end_date = today.strftime("%Y-%m-%d")
+        start_date = (today - timedelta(days=40)).strftime("%Y-%m-%d")
+        
+        # Get data
         rs = bs.query_history_k_data_plus(
             bs_code,
             'date,open,high,low,close,volume',
-            start_date='2026-05-20',
-            end_date='2026-06-23',
+            start_date=start_date,
+            end_date=end_date,
             frequency='d',
             adjustflag='3'
         )

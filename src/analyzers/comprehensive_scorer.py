@@ -1,6 +1,7 @@
 """Comprehensive stock scoring with proper weights."""
 
 from typing import List, Dict, Any
+from datetime import datetime, timedelta
 from loguru import logger
 
 
@@ -93,6 +94,13 @@ def get_comprehensive_top_stocks(budget: float = 1800, top_n: int = 10) -> List[
         bs.login()
         logger.info("Fetching stock data via baostock...")
         
+        # Use dynamic dates
+        today = datetime.now()
+        end_date = today.strftime("%Y-%m-%d")
+        start_date = (today - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        logger.info(f"Date range: {start_date} to {end_date}")
+        
         # Target codes - mainboard stocks under 19 RMB
         stock_codes = [
             'sz.000009', 'sz.000012', 'sz.000014', 'sz.000016', 'sz.000019',
@@ -150,7 +158,7 @@ def get_comprehensive_top_stocks(budget: float = 1800, top_n: int = 10) -> List[
                 # Get price data
                 rs = bs.query_history_k_data_plus(
                     code, 'date,close,volume,turn',
-                    start_date='2026-06-01', end_date='2026-06-24',
+                    start_date=start_date, end_date=end_date,
                     frequency='d', adjustflag='3'
                 )
                 
