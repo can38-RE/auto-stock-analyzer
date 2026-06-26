@@ -1,48 +1,11 @@
 {
-  "capital": 1800,
-  "holdings": [
-    {
-      "code": "600078",
-      "name": "澄星股份",
-      "price": 14.49,
-      "cost": 14.49,
-      "shares": 100,
-      "buy_date": "2026-06-23",
-      "avg_price": 14.49,
-      "current_price": 13.81,
-      "pnl": -68,
-      "pnl_pct": -4.69,
-      "stop_loss": 13.80,
-      "take_profit": 15.50,
-      "status": "亏损中-观察",
-      "action": "跌破13.80止损",
-      "holding_days": 1,
-      "holding_advice": "持有1-2天观察，跌破13.80立即止损"
-    }
-  ],
-  "transactions": [
-    {
-      "type": "buy",
-      "code": "600078",
-      "name": "澄星股份",
-      "price": 14.49,
-      "shares": 100,
-      "date": "2026-06-23",
-      "total": 1449
-    }
-  ],
-  "cash": 351,
-  "total_cost": 1449,
-  "total_value": 1381,
-  "total_pnl": -68,
-  "total_pnl_pct": -4.69,
-  "updated_at": "2026-06-24T14:00:00",
-  "strategy": {
-    "style": "激进偏保守",
-    "risk_tolerance": "中等",
-    "max_single_position": 0.4,
-    "stop_loss_pct": 0.05,
-    "take_profit_pct": 0.10,
-    "learning_phase": "认知奠基期"
-  }
+  "capital": 1500,
+  "holdings": [],
+  "transactions": [],
+  "cash": 1500,
+  "total_cost": 0,
+  "total_value": 0,
+  "total_pnl": 0,
+  "total_pnl_pct": 0,
+  "updated_at": "2026-06-26T08:00:00"
 }

@@ -103,23 +103,16 @@ def run_daily_analysis():
         trend_results = trend_analyzer.analyze_multiple(screened_stocks[:10])
         logger.info(f"Completed trend analysis for {len(trend_results)} stocks")
         
-        # Step 1.7: Portfolio tracking
-        logger.info("Step 1.7: Updating portfolio...")
-        portfolio = PortfolioTracker()
-        current_prices = {s['code']: s['price'] for s in screened_stocks}
-        # Add current holdings prices
-        for h in portfolio.get_holdings():
-            if h['code'] not in current_prices:
-                # Try to get current price
-                for s in stock_list:
-                    if s.get('code') == h['code']:
-                        current_prices[h['code']] = s.get('price', h['price'])
-                        break
+        # Step 1.7: Portfolio (minimal - not shown in report)
+        logger.info("Step 1.7: Portfolio setup...")
+        portfolio_summary = {
+            'capital': budget,
+            'holdings_count': 0,
+            'total_pnl': 0,
+            'cash': budget
+        }
         
-        portfolio_summary = portfolio.get_portfolio_summary(current_prices)
-        logger.info(f"Portfolio: {portfolio_summary['holdings_count']} holdings, P&L: {portfolio_summary['total_pnl']:+.2f}元")
-        
-        # Step 1.8: Mainboard stock screening (fast, targeted list)
+        # Step 1.8: Mainboard stock screening
         logger.info("Step 1.8: Screening mainboard stocks...")
         screener = MainboardScreener()
         screened_stocks = screener.screen_stocks(budget=budget, top_n=20)
