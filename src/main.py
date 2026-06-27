@@ -15,10 +15,8 @@ from src.collectors.research_paper import ResearchPaperCollector
 from src.collectors.company_report import CompanyReportCollector
 from src.collectors.mainboard_screener import MainboardScreener
 from src.collectors.financial_enricher import FinancialEnricher
-from src.collectors.full_market_scanner import FullMarketScanner
 from src.analyzers.strategy import StrategyAnalyzer
 from src.analyzers.trend import TrendAnalyzer
-from src.analyzers.portfolio import PortfolioTracker
 from src.analyzers.metaphysics import MetaphysicsAnalyzer
 from src.analyzers.expert_strategies import ExpertStrategyAnalyzer
 from src.analyzers.policy_analysis import PolicyAnalyzer
@@ -92,17 +90,17 @@ def run_daily_analysis():
         # Step 1.5: Screen mainboard stocks for aggressive strategy
         logger.info("Step 1.5: Screening mainboard stocks...")
         screener = MainboardScreener()
-        budget = config.capital.get('initial', 1900)
+        budget = config.capital.get('initial', 1500)
         screened_stocks = screener.screen_stocks(budget=budget, top_n=20)
         buy_plan = screener.generate_buy_plan(screened_stocks, budget=budget)
         logger.info(f"Screened {len(screened_stocks)} mainboard stocks, buy plan: {buy_plan['summary']}")
-        
+
         # Step 1.6: Trend analysis for top stocks
         logger.info("Step 1.6: Analyzing trends for top stocks...")
         trend_analyzer = TrendAnalyzer()
         trend_results = trend_analyzer.analyze_multiple(screened_stocks[:10])
         logger.info(f"Completed trend analysis for {len(trend_results)} stocks")
-        
+
         # Step 1.7: Portfolio (minimal - not shown in report)
         logger.info("Step 1.7: Portfolio setup...")
         portfolio_summary = {
@@ -111,21 +109,11 @@ def run_daily_analysis():
             'total_pnl': 0,
             'cash': budget
         }
-        
-        # Step 1.8: Mainboard stock screening
-        logger.info("Step 1.8: Screening mainboard stocks...")
-        screener = MainboardScreener()
-        screened_stocks = screener.screen_stocks(budget=budget, top_n=20)
-        buy_plan = screener.generate_buy_plan(screened_stocks, budget=budget)
-        logger.info(f"Screened {len(screened_stocks)} mainboard stocks, buy plan: {buy_plan['summary']}")
-        
-        # Convert to dict format for other analyzers
-        scanned_dict = screened_stocks
-        
-        # Step 1.85: Enrich stock data with financial metrics
-        logger.info("Step 1.85: Enriching stock data with financial metrics...")
+
+        # Step 1.8: Enrich stock data with financial metrics
+        logger.info("Step 1.8: Enriching stock data with financial metrics...")
         enricher = FinancialEnricher()
-        enriched_stocks = enricher.enrich_stocks(scanned_dict[:20], max_stocks=20)
+        enriched_stocks = enricher.enrich_stocks(screened_stocks[:20], max_stocks=20)
         logger.info(f"Enriched {len(enriched_stocks)} stocks with financial data")
         
         # Step 1.9: Expert strategy analysis
@@ -182,10 +170,10 @@ def run_daily_analysis():
             policy_data=policy_data,
             research_data=research_data
         )
-        
+
         logger.info(f"Analysis complete. Generated {len(analysis_results.get('recommendations', []))} recommendations")
-        
-        # Add session info, screener results, portfolio, and metaphysics to analysis
+
+        # Add session info, screener results, and analysis to results
         analysis_results['session'] = session
         if session == "morning":
             analysis_results['session_label'] = "早盘"
@@ -193,16 +181,13 @@ def run_daily_analysis():
             analysis_results['session_label'] = "午盘"
         else:
             analysis_results['session_label'] = "周末预测"
-        analysis_results['mainboard_stocks'] = screened_stocks
+        analysis_results['mainboard_stocks'] = screened_stocks[:20]
         analysis_results['buy_plan'] = buy_plan
         analysis_results['trend_analysis'] = trend_results
         analysis_results['portfolio'] = portfolio_summary
         analysis_results['metaphysics'] = day_fortune
         analysis_results['metaphysics_stocks'] = metaphysics_results
         analysis_results['top_stocks'] = top_stocks
-
-        # Add new analysis modules
-        analysis_results['mainboard_stocks'] = scanned_dict[:20]
         analysis_results['expert_analysis'] = [
             {
                 "code": r.code,

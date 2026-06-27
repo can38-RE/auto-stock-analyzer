@@ -26,7 +26,7 @@ class MainboardScreener:
             bs.logout()
             self._logged_in = False
     
-    def screen_stocks(self, budget: float = 1900, max_price: float = 19.0, 
+    def screen_stocks(self, budget: float = 1500, max_price: float = 19.0,
                       min_price: float = 5.0, top_n: int = 20) -> List[Dict[str, Any]]:
         """Screen mainboard stocks using targeted code list."""
         self._login()
@@ -162,8 +162,8 @@ class MainboardScreener:
         logger.info(f"Found {len(candidates)} affordable mainboard stocks")
         return candidates[:top_n]
     
-    def generate_buy_plan(self, stocks: List[Dict[str, Any]], 
-                          budget: float = 1900) -> Dict[str, Any]:
+    def generate_buy_plan(self, stocks: List[Dict[str, Any]],
+                          budget: float = 1500) -> Dict[str, Any]:
         """Generate buy plan for given budget."""
         if not stocks:
             return {

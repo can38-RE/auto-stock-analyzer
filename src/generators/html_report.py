@@ -408,7 +408,7 @@ class HTMLReportGenerator:
         </section>
         
         <section class="section">
-            <h2>投资组合建议 (1900元本金)</h2>
+            <h2>投资组合建议 (1500元本金)</h2>
             <div class="portfolio-strategy">
                 <h3>资金配置方案</h3>
                 <p>总资金: ¥{{ portfolio_strategy.capital }}</p>
@@ -931,14 +931,22 @@ class HTMLReportGenerator:
                 </div>
             </div>
             
-            {% if intl_warnings %}
-            <h3 style="margin-top: 20px;">风险提示</h3>
-            <ul style="background: #fff3e0; padding: 15px 15px 15px 35px; border-radius: 8px;">
-                {% for warning in intl_warnings[:5] %}
-                <li style="margin-bottom: 5px;">{{ warning }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
+        {% if intl_warnings %}
+        <section class="section">
+            <h2>国际形势风险提示</h2>
+            {% for warning in intl_warnings[:5] %}
+            <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #ff9800;">
+                <p><strong>{{ warning.event|default(warning) }}</strong></p>
+                {% if warning.description %}
+                <p>{{ warning.description }}</p>
+                {% endif %}
+                {% if warning.recommendation %}
+                <p><strong>建议:</strong> {{ warning.recommendation }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
             
             {% if intl_recommendations %}
             <h3 style="margin-top: 20px;">国际形势受益股</h3>

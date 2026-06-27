@@ -209,35 +209,43 @@ class TrendAnalyzer:
             direction = 'strong_uptrend'
             strength = 90
             desc = '强势上涨（均线多头排列）'
+            emoji = '🔥'
         elif current > ma5 > ma10:
             direction = 'uptrend'
             strength = 70
             desc = '上涨趋势'
+            emoji = '📈'
         elif current > ma5:
             direction = 'weak_uptrend'
             strength = 55
             desc = '弱上涨'
+            emoji = '↗️'
         elif current < ma5 < ma10 < ma20:
             direction = 'strong_downtrend'
             strength = 10
             desc = '强势下跌（均线空头排列）'
+            emoji = '💥'
         elif current < ma5 < ma10:
             direction = 'downtrend'
             strength = 30
             desc = '下跌趋势'
+            emoji = '📉'
         elif current < ma5:
             direction = 'weak_downtrend'
             strength = 45
             desc = '弱下跌'
+            emoji = '↘️'
         else:
             direction = 'consolidation'
             strength = 50
             desc = '震荡整理'
-        
+            emoji = '↔️'
+
         return {
             'direction': direction,
             'strength': strength,
             'description': desc,
+            'emoji': emoji,
             'ma5': round(ma5, 2),
             'ma10': round(ma10, 2),
             'ma20': round(ma20, 2),

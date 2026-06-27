@@ -57,7 +57,7 @@ class EmailSender:
             msg = MIMEMultipart('alternative')
             msg['From'] = sender_email
             msg['To'] = receiver_email
-            msg['Subject'] = f"{emoji} {session}分析报告 - {now.strftime('%Y-%m-%d')} | 1900元激进策略"
+            msg['Subject'] = f"{emoji} {session}分析报告 - {now.strftime('%Y-%m-%d')} | 1500元激进策略"
             
             # Read report content
             report_path = Path(report_path)
