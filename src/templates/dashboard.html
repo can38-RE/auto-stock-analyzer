@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoStockAnalyzer - 股票分析仪表盘</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; margin-bottom: 20px; }
+        header h1 { font-size: 2em; margin-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .card h2 { color: #667eea; margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: 600; }
+        .positive { color: #e74c3c; }
+        .negative { color: #27ae60; }
+        .score { background: #667eea; color: white; padding: 3px 8px; border-radius: 10px; }
+        .holding-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .holding-card h3 { margin-bottom: 15px; }
+        .holding-details { display: flex; flex-wrap: wrap; gap: 20px; }
+        .holding-item { flex: 1; min-width: 150px; }
+        .holding-item label { font-size: 0.9em; opacity: 0.8; }
+        .holding-item value { font-size: 1.5em; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 AutoStockAnalyzer</h1>
+            <p>超短线股票分析系统 | 金元证券 | {{ now.strftime('%Y-%m-%d %H:%M') }}</p>
+        </header>
+        
+        <!-- Portfolio Section -->
+        <div class="holding-card">
+            <h3>💼 我的持仓</h3>
+            {% for holding in portfolio.holdings %}
+            <div class="holding-details">
+                <div class="holding-item">
+                    <label>股票</label>
+                    <value>{{ holding.name }} ({{ holding.code }})</value>
+                </div>
+                <div class="holding-item">
+                    <label>买入价</label>
+                    <value>¥{{ "%.2f"|format(holding.buy_price) }}</value>
+                </div>
+                <div class="holding-item">
+                    <label>当前价</label>
+                    <value>¥{{ "%.2f"|format(holding.current_price|default(holding.buy_price)) }}</value>
+                </div>
+                <div class="holding-item">
+                    <label>盈亏</label>
+                    <value class="{{ 'positive' if holding.change_pct|default(0) > 0 else 'negative' }}">
+                        {{ "%+.2f"|format(holding.change_pct|default(0)) }}%
+                    </value>
+                </div>
+                <div class="holding-item">
+                    <label>市值</label>
+                    <value>¥{{ "%.0f"|format(holding.market_value|default(holding.cost)) }}</value>
+                </div>
+            </div>
+            {% endfor %}
+            <div style="margin-top: 15px;">
+                <p>总资金: ¥{{ portfolio.capital }} | 现金: ¥{{ portfolio.cash }}</p>
+            </div>
+        </div>
+        
+        <!-- Recommendations Section -->
+        <div class="card">
+            <h2>📈 今日推荐 TOP10</h2>
+            <p>超短线策略 | 评分权重: 动量40% + 换手率30% + 趋势30%</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>排名</th>
+                        <th>股票</th>
+                        <th>价格</th>
+                        <th>1手成本</th>
+                        <th>今日涨幅</th>
+                        <th>3日涨幅</th>
+                        <th>5日涨幅</th>
+                        <th>评分</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in recommendations %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><strong>{{ stock.name }}</strong><br><small>{{ stock.code }}</small></td>
+                        <td>¥{{ "%.2f"|format(stock.price) }}</td>
+                        <td>¥{{ "%.0f"|format(stock.cost_100) }}</td>
+                        <td class="{{ 'positive' if stock.change_1d > 0 else 'negative' }}">
+                            {{ "%+.2f"|format(stock.change_1d) }}%
+                        </td>
+                        <td class="{{ 'positive' if stock.change_3d > 0 else 'negative' }}">
+                            {{ "%+.2f"|format(stock.change_3d) }}%
+                        </td>
+                        <td class="{{ 'positive' if stock.change_5d > 0 else 'negative' }}">
+                            {{ "%+.2f"|format(stock.change_5d) }}%
+                        </td>
+                        <td><span class="score">{{ stock.score }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Strategy Section -->
+        <div class="card">
+            <h2>⚡ 超短线策略</h2>
+            <ul>
+                <li><strong>T+1规则:</strong> 今天买入，明天才能卖出</li>
+                <li><strong>止损:</strong> -5%（跌破立即卖出）</li>
+                <li><strong>止盈:</strong> +15%（达到目标考虑卖出）</li>
+                <li><strong>持仓:</strong> 最多2只，集中优势</li>
+                <li><strong>资金:</strong> 1500元预算，100股起买</li>
+            </ul>
+        </div>
+        
+        <footer style="text-align: center; padding: 20px; color: #666;">
+            <p>AutoStockAnalyzer v1.0 | 超短线股票分析系统</p>
+            <p>数据来源: baostock | 推送时间: 8:00 AM + 1:00 PM</p>
+        </footer>
+    </div>
+</body>
+</html>
