@@ -22,6 +22,7 @@ from src.analyzers.expert_strategies import ExpertStrategyAnalyzer
 from src.analyzers.policy_analysis import PolicyAnalyzer
 from src.analyzers.international import InternationalAnalyzer
 from src.analyzers.comprehensive_scorer import get_comprehensive_top_stocks
+from src.analyzers.vix_vin import VIXVINMonitor
 from src.generators.html_report import HTMLReportGenerator
 from src.generators.email_sender import send_daily_report
 
@@ -159,6 +160,12 @@ def run_daily_analysis():
         top_stocks = get_comprehensive_top_stocks(budget=budget, top_n=10)
         logger.info(f"Comprehensive scoring: {len(top_stocks)} top stocks")
 
+        # Step 1.14: VIX/VIN dual monitoring
+        logger.info("Step 1.14: Running VIX/VIN monitoring...")
+        vix_vin_monitor = VIXVINMonitor()
+        vix_vin_assessment = vix_vin_monitor.get_vix_vin_assessment()
+        logger.info(f"VIX/VIN assessment: VIX={vix_vin_assessment['vix'].get('price', 0):.2f}, iVIX={vix_vin_assessment['ivix'].get('price', 0):.2f}, Combined={vix_vin_assessment['combined_score']:.0f}")
+
         # Step 2: Analyze data
         logger.info("Step 2: Analyzing data...")
         strategy_analyzer = StrategyAnalyzer()
@@ -188,6 +195,7 @@ def run_daily_analysis():
         analysis_results['metaphysics'] = day_fortune
         analysis_results['metaphysics_stocks'] = metaphysics_results
         analysis_results['top_stocks'] = top_stocks
+        analysis_results['vix_vin'] = vix_vin_assessment
         analysis_results['expert_analysis'] = [
             {
                 "code": r.code,

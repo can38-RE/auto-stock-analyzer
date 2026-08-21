@@ -261,6 +261,40 @@ class HTMLReportGenerator:
             {% endif %}
         </section>
         
+        {% if vix_vin %}
+        <section class="section">
+            <h2>VIX/VIN 双重波动率监测</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 15px;">
+                <div style="flex: 1; min-width: 150px; background: {{ '#e8f5e9' if vix_vin.vix.price < 20 else '#fff3e0' if vix_vin.vix.price < 30 else '#ffebee' }}; padding: 15px; border-radius: 8px;">
+                    <p><strong>VIX (美国恐慌指数)</strong></p>
+                    <p style="font-size: 1.5em;">{{ "%.2f"|format(vix_vin.vix.price|default(0)) }}</p>
+                    <p>状态: {{ vix_vin.vix_status }}</p>
+                    <p>建议: {{ vix_vin.vix_advice }}</p>
+                </div>
+                <div style="flex: 1; min-width: 150px; background: {{ '#e8f5e9' if vix_vin.ivix.price < 20 else '#fff3e0' if vix_vin.ivix.price < 30 else '#ffebee' }}; padding: 15px; border-radius: 8px;">
+                    <p><strong>iVIX (中国波指)</strong></p>
+                    <p style="font-size: 1.5em;">{{ "%.2f"|format(vix_vin.ivix.price|default(0)) }}</p>
+                    <p>状态: {{ vix_vin.ivix_status }}</p>
+                    <p>建议: {{ vix_vin.ivix_advice }}</p>
+                </div>
+                <div style="flex: 1; min-width: 150px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <p><strong>综合评分</strong></p>
+                    <p style="font-size: 1.5em; color: #667eea;">{{ "%.0f"|format(vix_vin.combined_score) }}/100</p>
+                </div>
+            </div>
+            {% if vix_vin.recommendations %}
+            <div style="margin-top: 15px;">
+                <p><strong>建议:</strong></p>
+                <ul>
+                    {% for rec in vix_vin.recommendations %}
+                    <li>{{ rec }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
+        
         {% if session == 'morning' %}
         <section class="section" style="border-left: 4px solid #667eea;">
             <h2>早盘策略 (9:30开盘前)</h2>
