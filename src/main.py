@@ -23,6 +23,7 @@ from src.analyzers.policy_analysis import PolicyAnalyzer
 from src.analyzers.international import InternationalAnalyzer
 from src.analyzers.comprehensive_scorer import get_comprehensive_top_stocks
 from src.analyzers.vix_vin import VIXVINMonitor
+from src.analyzers.sector_rotation import SectorRotationDetector
 from src.generators.html_report import HTMLReportGenerator
 from src.generators.email_sender import send_daily_report
 
@@ -166,6 +167,13 @@ def run_daily_analysis():
         vix_vin_assessment = vix_vin_monitor.get_vix_vin_assessment()
         logger.info(f"VIX/VIN assessment: VIX={vix_vin_assessment['vix'].get('price', 0):.2f}, iVIX={vix_vin_assessment['ivix'].get('price', 0):.2f}, Combined={vix_vin_assessment['combined_score']:.0f}")
 
+        # Step 1.15: Sector rotation detection
+        logger.info("Step 1.15: Running sector rotation detection...")
+        sector_detector = SectorRotationDetector()
+        sector_performance = sector_detector.get_sector_performance(days=5)
+        rotation_analysis = sector_detector.detect_rotation(sector_performance)
+        logger.info(f"Sector rotation: {len(rotation_analysis.get('hot_sectors', []))} hot sectors detected")
+
         # Step 2: Analyze data
         logger.info("Step 2: Analyzing data...")
         strategy_analyzer = StrategyAnalyzer()
@@ -196,6 +204,10 @@ def run_daily_analysis():
         analysis_results['metaphysics_stocks'] = metaphysics_results
         analysis_results['top_stocks'] = top_stocks
         analysis_results['vix_vin'] = vix_vin_assessment
+        analysis_results['sector_rotation'] = {
+            'performance': sector_performance,
+            'analysis': rotation_analysis
+        }
         analysis_results['expert_analysis'] = [
             {
                 "code": r.code,

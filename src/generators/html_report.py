@@ -295,6 +295,87 @@ class HTMLReportGenerator:
         </section>
         {% endif %}
         
+        {% if sector_rotation %}
+        <section class="section">
+            <h2>板块轮动分析</h2>
+            <p>检测市场热点板块和资金流向，识别轮动机会</p>
+            
+            {% if sector_rotation.performance %}
+            <h3 style="margin-top: 15px;">板块表现排名</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #667eea; color: white;">
+                        <th style="padding: 10px; text-align: left;">板块</th>
+                        <th style="padding: 10px; text-align: right;">今日涨跌</th>
+                        <th style="padding: 10px; text-align: right;">3日涨跌</th>
+                        <th style="padding: 10px; text-align: right;">5日涨跌</th>
+                        <th style="padding: 10px; text-align: right;">动量</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sector in sector_rotation.performance[:10] %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">{{ sector.name }}</td>
+                        <td style="padding: 10px; text-align: right; color: {{ '#e74c3c' if sector.change_1d > 0 else '#27ae60' }};">
+                            {{ "%+.2f"|format(sector.change_1d) }}%
+                        </td>
+                        <td style="padding: 10px; text-align: right; color: {{ '#e74c3c' if sector.change_3d > 0 else '#27ae60' }};">
+                            {{ "%+.2f"|format(sector.change_3d) }}%
+                        </td>
+                        <td style="padding: 10px; text-align: right; color: {{ '#e74c3c' if sector.change_5d > 0 else '#27ae60' }};">
+                            {{ "%+.2f"|format(sector.change_5d) }}%
+                        </td>
+                        <td style="padding: 10px; text-align: right;">
+                            <span style="background: {{ '#27ae60' if sector.momentum > 5 else '#f39c12' if sector.momentum > 0 else '#e74c3c' }}; color: white; padding: 3px 8px; border-radius: 10px;">
+                                {{ "%.1f"|format(sector.momentum) }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+            
+            {% if sector_rotation.analysis %}
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <h4>轮动分析</h4>
+                <p><strong>检测到轮动:</strong> {{ '是' if sector_rotation.analysis.rotation_detected else '否' }}</p>
+                
+                {% if sector_rotation.analysis.hot_sectors %}
+                <p style="margin-top: 10px;"><strong>热点板块:</strong></p>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    {% for sector in sector_rotation.analysis.hot_sectors %}
+                    <span style="background: #27ae60; color: white; padding: 5px 15px; border-radius: 20px;">
+                        {{ sector.name }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if sector_rotation.analysis.cooling_sectors %}
+                <p style="margin-top: 10px;"><strong>冷却板块:</strong></p>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    {% for sector in sector_rotation.analysis.cooling_sectors %}
+                    <span style="background: #e74c3c; color: white; padding: 5px 15px; border-radius: 20px;">
+                        {{ sector.name }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if sector_rotation.analysis.recommendations %}
+                <p style="margin-top: 15px;"><strong>建议:</strong></p>
+                <ul>
+                    {% for rec in sector_rotation.analysis.recommendations %}
+                    <li>{{ rec }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
+        
         {% if session == 'morning' %}
         <section class="section" style="border-left: 4px solid #667eea;">
             <h2>早盘策略 (9:30开盘前)</h2>
