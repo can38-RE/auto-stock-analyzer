@@ -857,6 +857,100 @@ class HTMLReportGenerator:
         </section>
         {% endif %}
         
+        {% if technical_analysis %}
+        <section class="section">
+            <h2>技术指标分析</h2>
+            <p>MACD · RSI · KDJ · BOLL 四大技术指标综合分析</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <thead>
+                    <tr style="background: #667eea; color: white;">
+                        <th style="padding: 10px; text-align: left;">股票</th>
+                        <th style="padding: 10px; text-align: center;">MACD</th>
+                        <th style="padding: 10px; text-align: center;">RSI</th>
+                        <th style="padding: 10px; text-align: center;">KDJ</th>
+                        <th style="padding: 10px; text-align: center;">BOLL</th>
+                        <th style="padding: 10px; text-align: center;">综合信号</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in technical_analysis %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">
+                            <strong>{{ stock.name }}</strong><br>
+                            <small>{{ stock.code }}</small>
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span style="color: {{ '#27ae60' if stock.technical.macd.trend == 'bullish' else '#e74c3c' if stock.technical.macd.trend == 'bearish' else '#666' }};">
+                                {{ stock.technical.macd.trend }}
+                            </span>
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span style="color: {{ '#27ae60' if stock.technical.rsi.rsi < 30 else '#e74c3c' if stock.technical.rsi.rsi > 70 else '#666' }};">
+                                {{ "%.0f"|format(stock.technical.rsi.rsi) }}
+                            </span>
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span style="color: {{ '#27ae60' if stock.technical.kdj.signal == 'oversold' else '#e74c3c' if stock.technical.kdj.signal == 'overbought' else '#666' }};">
+                                {{ stock.technical.kdj.signal }}
+                            </span>
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span style="color: {{ '#27ae60' if stock.technical.bollinger.position == 'below_lower' else '#e74c3c' if stock.technical.bollinger.position == 'above_upper' else '#666' }};">
+                                {{ stock.technical.bollinger.position }}
+                            </span>
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span style="background: {{ '#27ae60' if stock.technical.combined_signal == 'strong_buy' else '#f39c12' if stock.technical.combined_signal == 'buy' else '#e74c3c' if stock.technical.combined_signal in ['sell', 'strong_sell'] else '#666' }}; color: white; padding: 3px 8px; border-radius: 10px;">
+                                {{ stock.technical.combined_signal }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
+        
+        {% if risk_assessments %}
+        <section class="section">
+            <h2>风险管理评估</h2>
+            <p>ATR止损 · 仓位管理 · 风险收益比</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <thead>
+                    <tr style="background: #e74c3c; color: white;">
+                        <th style="padding: 10px; text-align: left;">股票</th>
+                        <th style="padding: 10px; text-align: right;">当前价</th>
+                        <th style="padding: 10px; text-align: right;">ATR止损</th>
+                        <th style="padding: 10px; text-align: right;">建议仓位</th>
+                        <th style="padding: 10px; text-align: right;">风险收益比</th>
+                        <th style="padding: 10px; text-align: center;">波动率</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in risk_assessments %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">
+                            <strong>{{ item.name }}</strong><br>
+                            <small>{{ item.code }}</small>
+                        </td>
+                        <td style="padding: 10px; text-align: right;">¥{{ "%.2f"|format(item.risk.current_price) }}</td>
+                        <td style="padding: 10px; text-align: right; color: #e74c3c;">¥{{ "%.2f"|format(item.risk.stop_loss) }}</td>
+                        <td style="padding: 10px; text-align: right;">{{ item.risk.position.shares }}股 (¥{{ "%.0f"|format(item.risk.position.cost) }})</td>
+                        <td style="padding: 10px; text-align: right;">{{ "%.1f"|format(item.risk.risk_reward.ratio) }}:1</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span style="background: {{ '#27ae60' if item.risk.volatility_level == 'low' else '#f39c12' if item.risk.volatility_level == 'medium' else '#e74c3c' }}; color: white; padding: 3px 8px; border-radius: 10px;">
+                                {{ item.risk.volatility_level }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
+        
         {% if metaphysics %}
         <section class="section" style="border-left: 4px solid #9c27b0;">
             <h2>玄学分析 (仅供参考)</h2>

@@ -24,6 +24,8 @@ from src.analyzers.international import InternationalAnalyzer
 from src.analyzers.comprehensive_scorer import get_comprehensive_top_stocks
 from src.analyzers.vix_vin import VIXVINMonitor
 from src.analyzers.sector_rotation import SectorRotationDetector
+from src.analyzers.technical import TechnicalIndicators, analyze_technical_signals
+from src.analyzers.risk_manager import RiskManager
 from src.generators.html_report import HTMLReportGenerator
 from src.generators.email_sender import send_daily_report
 
@@ -174,6 +176,91 @@ def run_daily_analysis():
         rotation_analysis = sector_detector.detect_rotation(sector_performance)
         logger.info(f"Sector rotation: {len(rotation_analysis.get('hot_sectors', []))} hot sectors detected")
 
+        # Step 1.16: Technical indicators for top stocks
+        logger.info("Step 1.16: Running technical analysis...")
+        technical_results = []
+        for stock in screened_stocks[:10]:
+            try:
+                # Get historical data for technical analysis
+                import baostock as bs_temp
+                bs_temp.login()
+                code = stock.get('code', '')
+                if code.startswith('6'):
+                    bs_code = f"sh.{code}"
+                else:
+                    bs_code = f"sz.{code}"
+                
+                rs = bs_temp.query_history_k_data_plus(
+                    bs_code, 'date,close,high,low,volume',
+                    start_date='2026-07-01', end_date='2026-08-22',
+                    frequency='d', adjustflag='3'
+                )
+                data = []
+                while (rs.error_code == '0') and rs.next():
+                    data.append(rs.get_row_data())
+                bs_temp.logout()
+                
+                if len(data) >= 14:
+                    closes = [float(d[1]) for d in data if d[1]]
+                    highs = [float(d[2]) for d in data if d[2]]
+                    lows = [float(d[3]) for d in data if d[3]]
+                    
+                    tech = analyze_technical_signals(closes, highs, lows)
+                    technical_results.append({
+                        'code': code,
+                        'name': stock.get('name', ''),
+                        'price': closes[-1],
+                        'technical': tech
+                    })
+            except Exception as e:
+                logger.warning(f"Technical analysis failed for {stock.get('code')}: {e}")
+        
+        logger.info(f"Technical analysis: {len(technical_results)} stocks analyzed")
+
+        # Step 1.17: Risk management assessment
+        logger.info("Step 1.17: Running risk management assessment...")
+        risk_mgr = RiskManager(capital=budget, max_loss_pct=0.05)
+        risk_assessments = []
+        for stock in screened_stocks[:5]:
+            try:
+                import baostock as bs_temp2
+                bs_temp2.login()
+                code = stock.get('code', '')
+                if code.startswith('6'):
+                    bs_code = f"sh.{code}"
+                else:
+                    bs_code = f"sz.{code}"
+                
+                rs = bs_temp2.query_history_k_data_plus(
+                    bs_code, 'date,close,high,low',
+                    start_date='2026-06-01', end_date='2026-08-22',
+                    frequency='d', adjustflag='3'
+                )
+                data = []
+                while (rs.error_code == '0') and rs.next():
+                    data.append(rs.get_row_data())
+                bs_temp2.logout()
+                
+                if len(data) >= 14:
+                    closes = [float(d[1]) for d in data if d[1]]
+                    highs = [float(d[2]) for d in data if d[2]]
+                    lows = [float(d[3]) for d in data if d[3]]
+                    
+                    risk = risk_mgr.generate_risk_assessment({
+                        'closes': closes,
+                        'highs': highs,
+                        'lows': lows
+                    })
+                    risk_assessments.append({
+                        'code': code,
+                        'name': stock.get('name', ''),
+                        'risk': risk
+                    })
+            except Exception as e:
+                logger.warning(f"Risk assessment failed for {stock.get('code')}: {e}")
+        
+        logger.info(f"Risk assessment: {len(risk_assessments)} stocks assessed")
+
         # Step 2: Analyze data
         logger.info("Step 2: Analyzing data...")
         strategy_analyzer = StrategyAnalyzer()
@@ -208,6 +295,8 @@ def run_daily_analysis():
             'performance': sector_performance,
             'analysis': rotation_analysis
         }
+        analysis_results['technical_analysis'] = technical_results
+        analysis_results['risk_assessments'] = risk_assessments
         analysis_results['expert_analysis'] = [
             {
                 "code": r.code,
