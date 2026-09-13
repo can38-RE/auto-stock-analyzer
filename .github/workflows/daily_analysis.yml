@@ -2,10 +2,10 @@ name: Daily Stock Analysis
 
 on:
   schedule:
-    # 早盘分析: 北京时间8:00 (UTC 0:00) - 提早运行，避开高峰期延迟
+    # 早盘分析: 北京时间8:00 (UTC 0:00) - 在9:00开盘前送达
     - cron: '0 0 * * *'
-    # 午盘分析: 北京时间13:00 (UTC 5:00) - 提早运行
-    - cron: '0 5 * * 1-5'
+    # 午盘分析: 北京时间14:00 (UTC 6:00) - 在14:30午后交易前送达
+    - cron: '0 6 * * 1-5'
   workflow_dispatch: # 支持手动触发
 
 permissions:
