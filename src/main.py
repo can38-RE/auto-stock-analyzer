@@ -158,10 +158,10 @@ def run_daily_analysis():
 
         logger.info(f"Metaphysics analysis: Day score {day_fortune['fortune_score']}, {len(metaphysics_results)} stocks analyzed")
 
-        # Step 1.13: Comprehensive scoring (TOP10)
+        # Step 1.13: Comprehensive scoring (TOP8, score >= 60)
         logger.info("Step 1.13: Running comprehensive scoring...")
-        top_stocks = get_comprehensive_top_stocks(budget=budget, top_n=10)
-        logger.info(f"Comprehensive scoring: {len(top_stocks)} top stocks")
+        top_stocks = get_comprehensive_top_stocks(budget=budget, top_n=8, min_score=60)
+        logger.info(f"Comprehensive scoring: {len(top_stocks)} top stocks (score >= 60)")
 
         # Step 1.14: VIX/VIN dual monitoring
         logger.info("Step 1.14: Running VIX/VIN monitoring...")

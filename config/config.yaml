@@ -11,7 +11,7 @@ market:
 
 # Capital Configuration
 capital:
-  initial: 2000
+  initial: 3000
   currency: "CNY"
 
 # Risk Management

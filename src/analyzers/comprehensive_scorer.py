@@ -86,7 +86,7 @@ def _calculate_holding_recommendation(change_1d, change_5d, change_10d, turnover
     }
 
 
-def get_comprehensive_top_stocks(budget: float = 1500, top_n: int = 10) -> List[Dict[str, Any]]:
+def get_comprehensive_top_stocks(budget: float = 3000, top_n: int = 8, min_score: float = 60) -> List[Dict[str, Any]]:
     """Get top stocks with comprehensive scoring."""
     try:
         import baostock as bs
@@ -323,7 +323,7 @@ def get_comprehensive_top_stocks(budget: float = 1500, top_n: int = 10) -> List[
         return []
 
 
-def format_top_stocks_report(stocks: List[Dict[str, Any]], budget: float = 1500) -> str:
+def format_top_stocks_report(stocks: List[Dict[str, Any]], budget: float = 3000) -> str:
     """Format top stocks as readable report."""
     lines = [
         "=" * 70,
